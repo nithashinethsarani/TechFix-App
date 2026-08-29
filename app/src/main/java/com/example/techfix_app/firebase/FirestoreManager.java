@@ -1,5 +1,7 @@
 package com.example.techfix_app.firebase;
 
+import com.example.techfix_app.models.User;
+import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
@@ -14,6 +16,19 @@ public class FirestoreManager {
 
     public FirestoreManager() {
         firestore = FirebaseFirestore.getInstance();
+    }
+
+    // Save a customer/user profile
+    public void saveUser(
+            String uid,
+            User user,
+            OnCompleteListener<Void> listener) {
+
+        firestore
+                .collection("users")
+                .document(uid)
+                .set(user)
+                .addOnCompleteListener(listener);
     }
 
     // Add a document with an automatically generated ID

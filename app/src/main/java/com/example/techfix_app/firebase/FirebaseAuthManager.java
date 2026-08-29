@@ -13,7 +13,6 @@ public class FirebaseAuthManager {
         firebaseAuth = FirebaseAuth.getInstance();
     }
 
-    // Register a new user
     public void registerUser(
             String email,
             String password,
@@ -24,7 +23,6 @@ public class FirebaseAuthManager {
                 .addOnCompleteListener(listener);
     }
 
-    // Login an existing user
     public void loginUser(
             String email,
             String password,
@@ -35,22 +33,14 @@ public class FirebaseAuthManager {
                 .addOnCompleteListener(listener);
     }
 
-    // Logout current user
     public void logoutUser() {
         firebaseAuth.signOut();
     }
 
-    // Get currently logged-in user
     public FirebaseUser getCurrentUser() {
         return firebaseAuth.getCurrentUser();
     }
 
-    // Check whether a user is logged in
-    public boolean isUserLoggedIn() {
-        return firebaseAuth.getCurrentUser() != null;
-    }
-
-    // Get current Firebase user's UID
     public String getCurrentUserId() {
 
         FirebaseUser user = firebaseAuth.getCurrentUser();
@@ -60,5 +50,9 @@ public class FirebaseAuthManager {
         }
 
         return null;
+    }
+
+    public boolean isUserLoggedIn() {
+        return firebaseAuth.getCurrentUser() != null;
     }
 }

@@ -43,6 +43,8 @@ dependencies {
     implementation("com.google.firebase:firebase-analytics") //analytics
     implementation ("com.google.firebase:firebase-auth") //authentication
     implementation ("com.google.firebase:firebase-firestore") //firestore
+    implementation("com.google.firebase:firebase-storage")
+
 
     implementation(libs.activity.ktx)
     implementation(libs.annotation)
