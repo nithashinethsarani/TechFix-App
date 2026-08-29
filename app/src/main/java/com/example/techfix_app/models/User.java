@@ -1,4 +1,4 @@
-package com.example.techfix_app.data.model;
+package com.example.techfix_app.models;
 
 public class User {
     private String userId;

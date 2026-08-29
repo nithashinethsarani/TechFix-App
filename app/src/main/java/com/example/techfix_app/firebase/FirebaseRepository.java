@@ -1,10 +1,10 @@
-package com.example.techfix_app.data.firebase;
+package com.example.techfix_app.firebase;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.example.techfix_app.data.model.User;
+import com.example.techfix_app.models.User;
 
 public class FirebaseRepository {
     private final FirebaseAuth auth = FirebaseAuth.getInstance();

@@ -1,11 +1,11 @@
-package com.example.techfix_app;
+package com.example.techfix_app.activities;
 
 import android.os.Bundle;
 
 import android.content.Intent;
-import android.os.Bundle;
+
 import androidx.appcompat.app.AppCompatActivity;
-import com.example.techfix_app.ui.auth.SignupActivity;
+import com.example.techfix_app.activities.auth.SignupActivity;
 
 public class MainActivity extends AppCompatActivity {
 

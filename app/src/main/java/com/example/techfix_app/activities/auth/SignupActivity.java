@@ -1,4 +1,4 @@
-package com.example.techfix_app.ui.auth;
+package com.example.techfix_app.activities.auth;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -7,9 +7,9 @@ import android.widget.EditText;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.example.techfix_app.MainActivity;
+import com.example.techfix_app.activities.MainActivity;
 import com.example.techfix_app.R;
-import com.example.techfix_app.data.firebase.FirebaseRepository;
+import com.example.techfix_app.firebase.FirebaseRepository;
 
 public class SignupActivity extends AppCompatActivity {
 
