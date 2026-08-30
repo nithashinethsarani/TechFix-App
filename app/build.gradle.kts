@@ -44,6 +44,7 @@ dependencies {
     implementation ("com.google.firebase:firebase-auth") //authentication
     implementation ("com.google.firebase:firebase-firestore") //firestore
     implementation("com.google.firebase:firebase-storage")
+    implementation("com.google.android.gms:play-services-location:21.2.0")
 
 
     implementation(libs.activity.ktx)

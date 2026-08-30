@@ -11,7 +11,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.example.techfix_app.R;
 import com.example.techfix_app.activities.payment.PaymentActivity;
 import com.example.techfix_app.database.AppDatabase;
-import com.example.techfix_app.database.RepairEntity;
+import com.example.techfix_app.database.entities.RepairEntity;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 public class RepairStatusActivity extends AppCompatActivity {
