@@ -1,10 +1,84 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/main"
+
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    tools:context=".activities.MainActivity"
-    tools:layout_editor_absoluteX="0dp"
-    tools:layout_editor_absoluteY="71dp"/>
+    android:layout_height="match_parent">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="20dp">
+
+        <!-- App Name -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="TechFix"
+            android:textSize="30sp"
+            android:textStyle="bold"
+            android:gravity="center"
+            android:layout_marginBottom="8dp" />
+
+        <!-- Welcome Message -->
+        <TextView
+            android:id="@+id/tvWelcome"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Welcome to TechFix!"
+            android:textSize="18sp"
+            android:gravity="center"
+            android:layout_marginBottom="25dp" />
+
+        <!-- Services -->
+        <Button
+            android:id="@+id/btnServices"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="View Repair Services"
+            android:layout_marginBottom="10dp" />
+
+        <!-- Appointments -->
+        <Button
+            android:id="@+id/btnAppointments"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Book an Appointment"
+            android:layout_marginBottom="10dp" />
+
+        <!-- Track Repair -->
+        <Button
+            android:id="@+id/btnTrackRepair"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Track My Repair"
+            android:layout_marginBottom="10dp" />
+
+        <!-- Repair History -->
+        <Button
+            android:id="@+id/btnRepairHistory"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Repair History"
+            android:layout_marginBottom="10dp" />
+
+        <!-- Branches -->
+        <Button
+            android:id="@+id/btnBranches"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="View Branches"
+            android:layout_marginBottom="10dp" />
+
+        <!-- Profile -->
+        <Button
+            android:id="@+id/btnProfile"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="My Profile"
+            android:layout_marginBottom="10dp" />
+
+    </LinearLayout>
+
+</ScrollView>
+
