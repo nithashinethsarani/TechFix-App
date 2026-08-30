@@ -46,7 +46,7 @@ dependencies {
     implementation("com.google.firebase:firebase-storage")
     implementation("com.google.android.gms:play-services-location:21.2.0")
 
-    val roomVersion = "2.6.1"
+    val roomVersion = "2.5.2"
     implementation("androidx.room:room-runtime:$roomVersion")
     annotationProcessor("androidx.room:room-compiler:$roomVersion")
 
