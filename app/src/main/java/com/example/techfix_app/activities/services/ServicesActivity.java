@@ -43,9 +43,13 @@ public class ServicesActivity extends AppCompatActivity {
 
         recyclerServices.setLayoutManager(new LinearLayoutManager(this));
         adapter = new ServiceAdapter(displayedList, service -> {
-            // TODO: open ServiceDetailsActivity and pass service id
             Intent intent = new Intent(ServicesActivity.this, ServiceDetailsActivity.class);
             intent.putExtra("service_id", service.getId());
+            intent.putExtra("service_name", service.getServiceName());
+            intent.putExtra("device_category", service.getDeviceCategory());
+            intent.putExtra("price", service.getPrice());
+            intent.putExtra("description", service.getDescription());
+            intent.putExtra("available", service.isAvailable());
             startActivity(intent);
         });
         recyclerServices.setAdapter(adapter);
