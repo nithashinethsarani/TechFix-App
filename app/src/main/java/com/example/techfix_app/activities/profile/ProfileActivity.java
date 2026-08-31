@@ -48,11 +48,6 @@ public class ProfileActivity extends AppCompatActivity {
         // Connect this Activity with activity_profile.xml
         setContentView(R.layout.activity_profile);
 
-
-        // ----------------------------------------------------
-        // CONNECT XML VIEWS
-        // ----------------------------------------------------
-
         etName = findViewById(R.id.etName);
         etEmail = findViewById(R.id.etEmail);
         etPhone = findViewById(R.id.etPhone);
@@ -64,18 +59,9 @@ public class ProfileActivity extends AppCompatActivity {
         progressBar = findViewById(R.id.progressBar);
 
 
-        // ----------------------------------------------------
-        // INITIALIZE FIREBASE
-        // ----------------------------------------------------
-
         firebaseAuth = FirebaseAuth.getInstance();
 
         firestoreManager = new FirestoreManager();
-
-
-        // ----------------------------------------------------
-        // GET CURRENTLY LOGGED-IN USER
-        // ----------------------------------------------------
 
         FirebaseUser firebaseUser = firebaseAuth.getCurrentUser();
 

@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -18,6 +19,8 @@ public class SignupActivity extends AppCompatActivity {
 
     private EditText etName, etEmail, etPassword;
     private Button btnSignup;
+
+    private TextView tvLogin;
 
     private FirebaseAuthManager authManager;
     private FirestoreManager firestoreManager;
@@ -36,9 +39,20 @@ public class SignupActivity extends AppCompatActivity {
         etEmail = findViewById(R.id.etEmail);
         etPassword = findViewById(R.id.etPassword);
         btnSignup = findViewById(R.id.btnSignup);
+        tvLogin = findViewById(R.id.tvLogin);
 
         // Signup button
         btnSignup.setOnClickListener(v -> handleSignup());
+
+        // go to Login
+        tvLogin.setOnClickListener(v -> {
+            Intent intent = new Intent(
+                    SignupActivity.this,
+                    LoginActivity.class
+            );
+
+            startActivity(intent);
+        });
     }
 
     private void handleSignup() {
