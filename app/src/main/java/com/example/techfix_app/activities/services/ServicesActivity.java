@@ -1,6 +1,8 @@
 package com.example.techfix_app.activities.services;
 
+import android.content.Intent;
 import android.os.Bundle;
+import android.widget.Button;
 import android.widget.SearchView;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -16,131 +18,97 @@ import java.util.List;
 
 public class ServicesActivity extends AppCompatActivity {
 
-    private RecyclerView recyclerView;
-    private SearchView searchView;
-
+    private RecyclerView recyclerServices;
     private ServiceAdapter adapter;
-    private List<Service> serviceList;
+    private List<Service> fullServiceList;   // master list (all services)
+    private List<Service> displayedList;     // currently filtered/shown list
+
+    private String currentCategory = "All";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_services);
 
-        // Connect Java variables to XML
-        recyclerView = findViewById(R.id.recyclerViewServices);
-        searchView = findViewById(R.id.searchView);
+        recyclerServices = findViewById(R.id.recyclerServices);
+        SearchView searchView = findViewById(R.id.searchView);
+        Button btnAll = findViewById(R.id.btnAll);
+        Button btnComputer = findViewById(R.id.btnComputer);
+        Button btnMobile = findViewById(R.id.btnMobile);
 
-        // Setup RecyclerView
-        recyclerView.setLayoutManager(
-                new LinearLayoutManager(this)
-        );
+        // TODO: Replace loadDummyServices() with Member 1's FirestoreManager call
+        // once it's ready, e.g. firestoreManager.getAllServices(callback)
+        fullServiceList = loadDummyServices();
+        displayedList = new ArrayList<>(fullServiceList);
 
-        // Load temporary service data
-        serviceList = getDummyServices();
+        recyclerServices.setLayoutManager(new LinearLayoutManager(this));
+        adapter = new ServiceAdapter(displayedList, service -> {
+            Intent intent = new Intent(ServicesActivity.this, ServiceDetailsActivity.class);
+            intent.putExtra("service_id", service.getId());
+            intent.putExtra("service_name", service.getServiceName());
+            intent.putExtra("device_category", service.getDeviceCategory());
+            intent.putExtra("price", service.getPrice());
+            intent.putExtra("description", service.getDescription());
+            intent.putExtra("available", service.isAvailable());
+            startActivity(intent);
+        });
+        recyclerServices.setAdapter(adapter);
 
-        // Create adapter
-        adapter = new ServiceAdapter(serviceList);
+        // Category filter buttons
+        btnAll.setOnClickListener(v -> {
+            currentCategory = "All";
+            applyFilters(searchView.getQuery().toString());
+        });
+        btnComputer.setOnClickListener(v -> {
+            currentCategory = "Computer";
+            applyFilters(searchView.getQuery().toString());
+        });
+        btnMobile.setOnClickListener(v -> {
+            currentCategory = "Mobile";
+            applyFilters(searchView.getQuery().toString());
+        });
 
-        // Attach adapter to RecyclerView
-        recyclerView.setAdapter(adapter);
+        // Search
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                applyFilters(query);
+                return true;
+            }
 
-        // Setup search
-        setupSearch();
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                applyFilters(newText);
+                return true;
+            }
+        });
     }
 
-    private void setupSearch() {
+    // Filters fullServiceList by category + search text, updates adapter
+    private void applyFilters(String searchText) {
+        List<Service> filtered = new ArrayList<>();
+        for (Service s : fullServiceList) {
+            boolean matchesCategory = currentCategory.equals("All")
+                    || s.getDeviceCategory().equalsIgnoreCase(currentCategory);
+            boolean matchesSearch = searchText == null || searchText.isEmpty()
+                    || s.getServiceName().toLowerCase().contains(searchText.toLowerCase());
 
-        searchView.setOnQueryTextListener(
-                new SearchView.OnQueryTextListener() {
-
-                    @Override
-                    public boolean onQueryTextSubmit(String query) {
-                        return false;
-                    }
-
-                    @Override
-                    public boolean onQueryTextChange(String newText) {
-
-                        filterServices(newText);
-
-                        return true;
-                    }
-                }
-        );
-    }
-
-    private void filterServices(String text) {
-
-        List<Service> filteredList = new ArrayList<>();
-
-        String searchText = text.toLowerCase().trim();
-
-        for (Service service : serviceList) {
-
-            String serviceName =
-                    service.getServiceName().toLowerCase();
-
-            String category =
-                    service.getDeviceCategory().toLowerCase();
-
-            if (serviceName.contains(searchText)
-                    || category.contains(searchText)) {
-
-                filteredList.add(service);
+            if (matchesCategory && matchesSearch) {
+                filtered.add(s);
             }
         }
-
-        adapter.filterList(filteredList);
+        displayedList = filtered;
+        adapter.updateList(displayedList);
     }
 
-    // Temporary data for testing the UI
-    private List<Service> getDummyServices() {
-
+    // Temporary dummy data - remove once Firestore data is connected
+    private List<Service> loadDummyServices() {
         List<Service> list = new ArrayList<>();
-
-        list.add(new Service(
-                "1",
-                "Mobile Phone",
-                "Screen Replacement",
-                5000.00
-        ));
-
-        list.add(new Service(
-                "2",
-                "Mobile Phone",
-                "Battery Replacement",
-                3000.00
-        ));
-
-        list.add(new Service(
-                "3",
-                "Laptop",
-                "Screen Replacement",
-                12000.00
-        ));
-
-        list.add(new Service(
-                "4",
-                "Laptop",
-                "Keyboard Replacement",
-                6000.00
-        ));
-
-        list.add(new Service(
-                "5",
-                "Laptop",
-                "RAM Upgrade",
-                8000.00
-        ));
-
-        list.add(new Service(
-                "6",
-                "Mobile Phone",
-                "Charging Port Repair",
-                2500.00
-        ));
-
+        list.add(new Service("svc_001", "Computer", "Software Installation", 1500, "OS reinstall and driver setup", true));
+        list.add(new Service("svc_002", "Mobile", "Screen Replacement", 8000, "Original screen replacement", true));
+        list.add(new Service("svc_003", "Computer", "Hardware Upgrade (RAM)", 3500, "RAM upgrade service", true));
+        list.add(new Service("svc_004", "Mobile", "Battery Replacement", 4000, "Battery replacement", false));
+        list.add(new Service("svc_005", "Computer", "Virus Removal", 1200, "Full malware scan and cleanup", true));
         return list;
     }
 }
