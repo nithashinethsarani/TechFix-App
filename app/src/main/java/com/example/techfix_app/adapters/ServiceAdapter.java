@@ -11,49 +11,52 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.techfix_app.R;
 import com.example.techfix_app.models.Service;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 
 public class ServiceAdapter extends RecyclerView.Adapter<ServiceAdapter.ServiceViewHolder> {
 
     private List<Service> serviceList;
-    private final List<Service> originalList;
+    private OnServiceClickListener listener;
 
-    public ServiceAdapter(List<Service> serviceList) {
-        this.serviceList = new ArrayList<>(serviceList);
-        this.originalList = new ArrayList<>(serviceList);
+    // Interface to handle item click (used to open ServiceDetailsActivity)
+    public interface OnServiceClickListener {
+        void onServiceClick(Service service);
+    }
+
+    public ServiceAdapter(List<Service> serviceList, OnServiceClickListener listener) {
+        this.serviceList = serviceList;
+        this.listener = listener;
     }
 
     @NonNull
     @Override
-    public ServiceViewHolder onCreateViewHolder(
-            @NonNull ViewGroup parent,
-            int viewType) {
-
+    public ServiceViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext())
                 .inflate(R.layout.item_service, parent, false);
-
         return new ServiceViewHolder(view);
     }
 
     @Override
-    public void onBindViewHolder(
-            @NonNull ServiceViewHolder holder,
-            int position) {
-
+    public void onBindViewHolder(@NonNull ServiceViewHolder holder, int position) {
         Service service = serviceList.get(position);
 
         holder.tvServiceName.setText(service.getServiceName());
         holder.tvDeviceCategory.setText(service.getDeviceCategory());
+        holder.tvPrice.setText(String.format("Rs. %.2f", service.getPrice()));
 
-        holder.tvPrice.setText(
-                String.format(
-                        Locale.getDefault(),
-                        "Rs. %.2f",
-                        service.getPrice()
-                )
-        );
+        if (service.isAvailable()) {
+            holder.tvAvailability.setText("Available");
+            holder.tvAvailability.setTextColor(0xFF2E7D32); // green
+        } else {
+            holder.tvAvailability.setText("Unavailable");
+            holder.tvAvailability.setTextColor(0xFFC62828); // red
+        }
+
+        holder.itemView.setOnClickListener(v -> {
+            if (listener != null) {
+                listener.onServiceClick(service);
+            }
+        });
     }
 
     @Override
@@ -61,28 +64,21 @@ public class ServiceAdapter extends RecyclerView.Adapter<ServiceAdapter.ServiceV
         return serviceList.size();
     }
 
-    public void filterList(List<Service> filteredList) {
-        serviceList = new ArrayList<>(filteredList);
+    // Call this when filtering/searching to refresh the list
+    public void updateList(List<Service> newList) {
+        this.serviceList = newList;
         notifyDataSetChanged();
     }
 
-    public void resetList() {
-        serviceList = new ArrayList<>(originalList);
-        notifyDataSetChanged();
-    }
-
-    public static class ServiceViewHolder extends RecyclerView.ViewHolder {
-
-        TextView tvServiceName;
-        TextView tvDeviceCategory;
-        TextView tvPrice;
+    static class ServiceViewHolder extends RecyclerView.ViewHolder {
+        TextView tvServiceName, tvDeviceCategory, tvPrice, tvAvailability;
 
         public ServiceViewHolder(@NonNull View itemView) {
             super(itemView);
-
             tvServiceName = itemView.findViewById(R.id.tvServiceName);
             tvDeviceCategory = itemView.findViewById(R.id.tvDeviceCategory);
             tvPrice = itemView.findViewById(R.id.tvPrice);
+            tvAvailability = itemView.findViewById(R.id.tvAvailability);
         }
     }
 }
