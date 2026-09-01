@@ -10,7 +10,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.techfix_app.R;
 import com.example.techfix_app.adapters.InventoryAdapter;
-import com.example.techfix_app.firebase.FirestoreManager;
+import com.example.techfix_app.database.InventoryDAO;
 import com.example.techfix_app.models.InventoryItem;
 
 import java.util.ArrayList;
@@ -21,7 +21,7 @@ public class InventoryManagementActivity extends AppCompatActivity {
     private RecyclerView recyclerView;
     private InventoryAdapter adapter;
     private List<InventoryItem> itemList = new ArrayList<>();
-    private FirestoreManager firestoreManager;
+    private InventoryDAO inventoryDAO;
     private View fabAddItem;
 
     @Override
@@ -31,7 +31,7 @@ public class InventoryManagementActivity extends AppCompatActivity {
 
         recyclerView = findViewById(R.id.recyclerViewInventory);
         fabAddItem = findViewById(R.id.fabAddInventory);
-        firestoreManager = new FirestoreManager();
+        inventoryDAO = new InventoryDAO(this);
 
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         adapter = new InventoryAdapter(itemList, new InventoryAdapter.OnItemClickListener() {
@@ -44,14 +44,13 @@ public class InventoryManagementActivity extends AppCompatActivity {
 
             @Override
             public void onDeleteClick(InventoryItem item) {
-                firestoreManager.deleteInventoryItem(item.getItemId(), success -> {
-                    if (success) {
-                        Toast.makeText(InventoryManagementActivity.this, "Item deleted", Toast.LENGTH_SHORT).show();
-                        loadInventory();
-                    } else {
-                        Toast.makeText(InventoryManagementActivity.this, "Delete failed", Toast.LENGTH_SHORT).show();
-                    }
-                });
+                boolean success = inventoryDAO.deleteItem(item.getItemId());
+                if (success) {
+                    Toast.makeText(InventoryManagementActivity.this, "Item deleted", Toast.LENGTH_SHORT).show();
+                    loadInventory();
+                } else {
+                    Toast.makeText(InventoryManagementActivity.this, "Delete failed", Toast.LENGTH_SHORT).show();
+                }
             }
         });
         recyclerView.setAdapter(adapter);
@@ -68,10 +67,9 @@ public class InventoryManagementActivity extends AppCompatActivity {
     }
 
     private void loadInventory() {
-        firestoreManager.getAllInventoryItems(list -> {
-            itemList.clear();
-            itemList.addAll(list);
-            adapter.notifyDataSetChanged();
-        });
+        List<InventoryItem> list = inventoryDAO.getAllItems();
+        itemList.clear();
+        itemList.addAll(list);
+        adapter.notifyDataSetChanged();
     }
 }

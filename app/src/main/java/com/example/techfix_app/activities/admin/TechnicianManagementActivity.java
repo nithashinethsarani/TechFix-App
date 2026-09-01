@@ -10,7 +10,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.techfix_app.R;
 import com.example.techfix_app.adapters.TechnicianAdapter;
-import com.example.techfix_app.firebase.FirestoreManager;
+import com.example.techfix_app.database.TechnicianDAO;
 import com.example.techfix_app.models.Technician;
 
 import java.util.ArrayList;
@@ -21,7 +21,7 @@ public class TechnicianManagementActivity extends AppCompatActivity {
     private RecyclerView recyclerView;
     private TechnicianAdapter adapter;
     private List<Technician> technicianList = new ArrayList<>();
-    private FirestoreManager firestoreManager;
+    private TechnicianDAO technicianDAO;
     private View fabAddTechnician;
 
     @Override
@@ -31,7 +31,7 @@ public class TechnicianManagementActivity extends AppCompatActivity {
 
         recyclerView = findViewById(R.id.recyclerViewTechnicians);
         fabAddTechnician = findViewById(R.id.fabAddTechnician);
-        firestoreManager = new FirestoreManager();
+        technicianDAO = new TechnicianDAO(this);
 
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         adapter = new TechnicianAdapter(technicianList, new TechnicianAdapter.OnTechnicianClickListener() {
@@ -44,14 +44,13 @@ public class TechnicianManagementActivity extends AppCompatActivity {
 
             @Override
             public void onDeleteClick(Technician technician) {
-                firestoreManager.deleteTechnician(technician.getTechnicianId(), success -> {
-                    if (success) {
-                        Toast.makeText(TechnicianManagementActivity.this, "Technician deleted", Toast.LENGTH_SHORT).show();
-                        loadTechnicians();
-                    } else {
-                        Toast.makeText(TechnicianManagementActivity.this, "Delete failed", Toast.LENGTH_SHORT).show();
-                    }
-                });
+                boolean success = technicianDAO.deleteTechnician(technician.getTechnicianId());
+                if (success) {
+                    Toast.makeText(TechnicianManagementActivity.this, "Technician deleted", Toast.LENGTH_SHORT).show();
+                    loadTechnicians();
+                } else {
+                    Toast.makeText(TechnicianManagementActivity.this, "Delete failed", Toast.LENGTH_SHORT).show();
+                }
             }
         });
         recyclerView.setAdapter(adapter);
@@ -64,14 +63,13 @@ public class TechnicianManagementActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        loadTechnicians(); // refresh list every time user comes back
+        loadTechnicians();
     }
 
     private void loadTechnicians() {
-        firestoreManager.getAllTechnicians(list -> {
-            technicianList.clear();
-            technicianList.addAll(list);
-            adapter.notifyDataSetChanged();
-        });
+        List<Technician> list = technicianDAO.getAllTechnicians();
+        technicianList.clear();
+        technicianList.addAll(list);
+        adapter.notifyDataSetChanged();
     }
 }

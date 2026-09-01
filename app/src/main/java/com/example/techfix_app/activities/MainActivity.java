@@ -1,5 +1,7 @@
 package com.example.techfix_app.activities;
 
+import static androidx.core.content.ContextCompat.startActivity;
+
 import android.os.Bundle;
 
 import android.content.Intent;

@@ -18,8 +18,8 @@ import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
 
 import com.example.techfix_app.R;
-import com.example.techfix_app.firebase.FirestoreManager;
-import com.example.techfix_app.firebase.StorageManager;
+import com.example.techfix_app.database.BranchDAO;
+import com.example.techfix_app.database.RepairImageDAO;
 import com.example.techfix_app.models.Branch;
 import com.example.techfix_app.models.RepairImage;
 
@@ -41,10 +41,10 @@ public class UploadRepairImageActivity extends AppCompatActivity {
     private Spinner spinnerBranch, spinnerCategory;
     private Button btnCapture, btnUpload;
 
-    private FirestoreManager firestoreManager;
-    private StorageManager storageManager;
+    private RepairImageDAO repairImageDAO;
+    private BranchDAO branchDAO;
 
-    private Uri photoUri;          // uri for camera to save into
+    private Uri photoUri;
     private String currentPhotoPath;
     private List<Branch> branchList = new ArrayList<>();
 
@@ -60,14 +60,14 @@ public class UploadRepairImageActivity extends AppCompatActivity {
         btnCapture = findViewById(R.id.btnCapture);
         btnUpload = findViewById(R.id.btnUpload);
 
-        firestoreManager = new FirestoreManager();
-        storageManager = new StorageManager();
+        repairImageDAO = new RepairImageDAO(this);
+        branchDAO = new BranchDAO(this);
 
         setupCategorySpinner();
         loadBranchesToSpinner();
 
         btnCapture.setOnClickListener(v -> checkCameraPermissionAndOpen());
-        btnUpload.setOnClickListener(v -> uploadImage());
+        btnUpload.setOnClickListener(v -> saveImage());
     }
 
     private void setupCategorySpinner() {
@@ -79,17 +79,16 @@ public class UploadRepairImageActivity extends AppCompatActivity {
     }
 
     private void loadBranchesToSpinner() {
-        firestoreManager.getAllBranches(list -> {
-            branchList.clear();
-            branchList.addAll(list);
-            List<String> names = new ArrayList<>();
-            for (Branch b : branchList) names.add(b.getName());
+        branchList.clear();
+        branchList.addAll(branchDAO.getAllBranches());
 
-            ArrayAdapter<String> adapter = new ArrayAdapter<>(this,
-                    android.R.layout.simple_spinner_item, names);
-            adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-            spinnerBranch.setAdapter(adapter);
-        });
+        List<String> names = new ArrayList<>();
+        for (Branch b : branchList) names.add(b.getName());
+
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(this,
+                android.R.layout.simple_spinner_item, names);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinnerBranch.setAdapter(adapter);
     }
 
     private void checkCameraPermissionAndOpen() {
@@ -149,8 +148,8 @@ public class UploadRepairImageActivity extends AppCompatActivity {
         }
     }
 
-    private void uploadImage() {
-        if (photoUri == null) {
+    private void saveImage() {
+        if (photoUri == null || currentPhotoPath == null) {
             Toast.makeText(this, "Please capture an image first", Toast.LENGTH_SHORT).show();
             return;
         }
@@ -163,33 +162,20 @@ public class UploadRepairImageActivity extends AppCompatActivity {
         String category = spinnerCategory.getSelectedItem().toString();
         Branch selectedBranch = branchList.get(spinnerBranch.getSelectedItemPosition());
 
-        btnUpload.setEnabled(false);
-        Toast.makeText(this, "Uploading...", Toast.LENGTH_SHORT).show();
+        RepairImage repairImage = new RepairImage(
+                selectedBranch.getBranchId(),
+                category,
+                currentPhotoPath,
+                caption,
+                System.currentTimeMillis()
+        );
 
-        storageManager.uploadRepairImage(photoUri, downloadUrl -> {
-            if (downloadUrl != null) {
-                RepairImage repairImage = new RepairImage(
-                        null,
-                        selectedBranch.getBranchId(),
-                        category,
-                        downloadUrl,
-                        caption,
-                        System.currentTimeMillis()
-                );
-
-                firestoreManager.addRepairImage(repairImage, success -> {
-                    btnUpload.setEnabled(true);
-                    if (success) {
-                        Toast.makeText(this, "Image uploaded successfully", Toast.LENGTH_SHORT).show();
-                        finish();
-                    } else {
-                        Toast.makeText(this, "Failed to save image data", Toast.LENGTH_SHORT).show();
-                    }
-                });
-            } else {
-                btnUpload.setEnabled(true);
-                Toast.makeText(this, "Image upload failed", Toast.LENGTH_SHORT).show();
-            }
-        });
+        long newId = repairImageDAO.addImage(repairImage);
+        if (newId != -1) {
+            Toast.makeText(this, "Image saved successfully", Toast.LENGTH_SHORT).show();
+            finish();
+        } else {
+            Toast.makeText(this, "Failed to save image", Toast.LENGTH_SHORT).show();
+        }
     }
 }

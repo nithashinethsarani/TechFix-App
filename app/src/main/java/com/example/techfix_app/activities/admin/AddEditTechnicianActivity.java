@@ -9,7 +9,8 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.techfix_app.R;
-import com.example.techfix_app.firebase.FirestoreManager;
+import com.example.techfix_app.database.BranchDAO;
+import com.example.techfix_app.database.TechnicianDAO;
 import com.example.techfix_app.models.Branch;
 import com.example.techfix_app.models.Technician;
 
@@ -21,8 +22,9 @@ public class AddEditTechnicianActivity extends AppCompatActivity {
     private EditText etName, etSpecialization, etPhone;
     private Spinner spinnerBranch;
     private Button btnSave;
-    private FirestoreManager firestoreManager;
-    private String technicianId = null;
+    private TechnicianDAO technicianDAO;
+    private BranchDAO branchDAO;
+    private int technicianId = -1;
     private List<Branch> branchList = new ArrayList<>();
 
     @Override
@@ -36,12 +38,13 @@ public class AddEditTechnicianActivity extends AppCompatActivity {
         spinnerBranch = findViewById(R.id.spinnerBranch);
         btnSave = findViewById(R.id.btnSaveTechnician);
 
-        firestoreManager = new FirestoreManager();
+        technicianDAO = new TechnicianDAO(this);
+        branchDAO = new BranchDAO(this);
 
         loadBranchesToSpinner();
 
         if (getIntent().hasExtra("technicianId")) {
-            technicianId = getIntent().getStringExtra("technicianId");
+            technicianId = getIntent().getIntExtra("technicianId", -1);
             loadTechnicianData();
         }
 
@@ -49,32 +52,32 @@ public class AddEditTechnicianActivity extends AppCompatActivity {
     }
 
     private void loadBranchesToSpinner() {
-        firestoreManager.getAllBranches(list -> {
-            branchList.clear();
-            branchList.addAll(list);
-            List<String> names = new ArrayList<>();
-            for (Branch b : branchList) names.add(b.getName());
+        branchList.clear();
+        branchList.addAll(branchDAO.getAllBranches());
 
-            ArrayAdapter<String> adapter = new ArrayAdapter<>(this,
-                    android.R.layout.simple_spinner_item, names);
-            adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-            spinnerBranch.setAdapter(adapter);
-        });
+        List<String> names = new ArrayList<>();
+        for (Branch b : branchList) names.add(b.getName());
+
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(this,
+                android.R.layout.simple_spinner_item, names);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinnerBranch.setAdapter(adapter);
     }
 
     private void loadTechnicianData() {
-        firestoreManager.getTechnicianById(technicianId, technician -> {
-            etName.setText(technician.getName());
-            etSpecialization.setText(technician.getSpecialization());
-            etPhone.setText(technician.getPhone());
+        Technician technician = technicianDAO.getTechnicianById(technicianId);
+        if (technician == null) return;
 
-            for (int i = 0; i < branchList.size(); i++) {
-                if (branchList.get(i).getBranchId().equals(technician.getBranchId())) {
-                    spinnerBranch.setSelection(i);
-                    break;
-                }
+        etName.setText(technician.getName());
+        etSpecialization.setText(technician.getSpecialization());
+        etPhone.setText(technician.getPhone());
+
+        for (int i = 0; i < branchList.size(); i++) {
+            if (branchList.get(i).getBranchId() == technician.getBranchId()) {
+                spinnerBranch.setSelection(i);
+                break;
             }
-        });
+        }
     }
 
     private void saveTechnician() {
@@ -100,25 +103,23 @@ public class AddEditTechnicianActivity extends AppCompatActivity {
         technician.setPhone(phone);
         technician.setBranchId(selectedBranch.getBranchId());
 
-        if (technicianId == null) {
-            firestoreManager.addTechnician(technician, success -> {
-                if (success) {
-                    Toast.makeText(this, "Technician added", Toast.LENGTH_SHORT).show();
-                    finish();
-                } else {
-                    Toast.makeText(this, "Failed to add technician", Toast.LENGTH_SHORT).show();
-                }
-            });
+        if (technicianId == -1) {
+            long newId = technicianDAO.addTechnician(technician);
+            if (newId != -1) {
+                Toast.makeText(this, "Technician added", Toast.LENGTH_SHORT).show();
+                finish();
+            } else {
+                Toast.makeText(this, "Failed to add technician", Toast.LENGTH_SHORT).show();
+            }
         } else {
             technician.setTechnicianId(technicianId);
-            firestoreManager.updateTechnician(technician, success -> {
-                if (success) {
-                    Toast.makeText(this, "Technician updated", Toast.LENGTH_SHORT).show();
-                    finish();
-                } else {
-                    Toast.makeText(this, "Failed to update technician", Toast.LENGTH_SHORT).show();
-                }
-            });
+            boolean success = technicianDAO.updateTechnician(technician);
+            if (success) {
+                Toast.makeText(this, "Technician updated", Toast.LENGTH_SHORT).show();
+                finish();
+            } else {
+                Toast.makeText(this, "Failed to update technician", Toast.LENGTH_SHORT).show();
+            }
         }
     }
 }

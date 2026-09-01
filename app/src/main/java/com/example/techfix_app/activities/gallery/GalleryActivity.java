@@ -9,7 +9,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.techfix_app.R;
 import com.example.techfix_app.adapters.GalleryAdapter;
-import com.example.techfix_app.firebase.FirestoreManager;
+import com.example.techfix_app.database.RepairImageDAO;
 import com.example.techfix_app.models.RepairImage;
 
 import java.util.ArrayList;
@@ -20,9 +20,9 @@ public class GalleryActivity extends AppCompatActivity {
     private RecyclerView recyclerView;
     private GalleryAdapter adapter;
     private List<RepairImage> imageList = new ArrayList<>();
-    private List<RepairImage> fullList = new ArrayList<>(); // unfiltered
+    private List<RepairImage> fullList = new ArrayList<>();
     private Spinner spinnerFilterCategory;
-    private FirestoreManager firestoreManager;
+    private RepairImageDAO repairImageDAO;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -31,7 +31,7 @@ public class GalleryActivity extends AppCompatActivity {
 
         recyclerView = findViewById(R.id.recyclerViewGallery);
         spinnerFilterCategory = findViewById(R.id.spinnerFilterCategory);
-        firestoreManager = new FirestoreManager();
+        repairImageDAO = new RepairImageDAO(this);
 
         recyclerView.setLayoutManager(new GridLayoutManager(this, 2));
         adapter = new GalleryAdapter(imageList);
@@ -61,13 +61,12 @@ public class GalleryActivity extends AppCompatActivity {
     }
 
     private void loadImages() {
-        firestoreManager.getAllRepairImages(list -> {
-            fullList.clear();
-            fullList.addAll(list);
-            imageList.clear();
-            imageList.addAll(list);
-            adapter.notifyDataSetChanged();
-        });
+        List<RepairImage> list = repairImageDAO.getAllImages();
+        fullList.clear();
+        fullList.addAll(list);
+        imageList.clear();
+        imageList.addAll(list);
+        adapter.notifyDataSetChanged();
     }
 
     private void filterImages(String category) {

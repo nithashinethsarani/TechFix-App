@@ -9,7 +9,8 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.techfix_app.R;
-import com.example.techfix_app.firebase.FirestoreManager;
+import com.example.techfix_app.database.BranchDAO;
+import com.example.techfix_app.database.InventoryDAO;
 import com.example.techfix_app.models.Branch;
 import com.example.techfix_app.models.InventoryItem;
 
@@ -21,8 +22,9 @@ public class AddEditInventoryActivity extends AppCompatActivity {
     private EditText etItemName, etQuantity, etPrice;
     private Spinner spinnerBranch;
     private Button btnSave;
-    private FirestoreManager firestoreManager;
-    private String itemId = null;
+    private InventoryDAO inventoryDAO;
+    private BranchDAO branchDAO;
+    private int itemId = -1;
     private List<Branch> branchList = new ArrayList<>();
 
     @Override
@@ -36,12 +38,13 @@ public class AddEditInventoryActivity extends AppCompatActivity {
         spinnerBranch = findViewById(R.id.spinnerInventoryBranch);
         btnSave = findViewById(R.id.btnSaveInventory);
 
-        firestoreManager = new FirestoreManager();
+        inventoryDAO = new InventoryDAO(this);
+        branchDAO = new BranchDAO(this);
 
         loadBranchesToSpinner();
 
         if (getIntent().hasExtra("itemId")) {
-            itemId = getIntent().getStringExtra("itemId");
+            itemId = getIntent().getIntExtra("itemId", -1);
             loadItemData();
         }
 
@@ -49,32 +52,32 @@ public class AddEditInventoryActivity extends AppCompatActivity {
     }
 
     private void loadBranchesToSpinner() {
-        firestoreManager.getAllBranches(list -> {
-            branchList.clear();
-            branchList.addAll(list);
-            List<String> names = new ArrayList<>();
-            for (Branch b : branchList) names.add(b.getName());
+        branchList.clear();
+        branchList.addAll(branchDAO.getAllBranches());
 
-            ArrayAdapter<String> adapter = new ArrayAdapter<>(this,
-                    android.R.layout.simple_spinner_item, names);
-            adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-            spinnerBranch.setAdapter(adapter);
-        });
+        List<String> names = new ArrayList<>();
+        for (Branch b : branchList) names.add(b.getName());
+
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(this,
+                android.R.layout.simple_spinner_item, names);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinnerBranch.setAdapter(adapter);
     }
 
     private void loadItemData() {
-        firestoreManager.getInventoryItemById(itemId, item -> {
-            etItemName.setText(item.getItemName());
-            etQuantity.setText(String.valueOf(item.getQuantity()));
-            etPrice.setText(String.valueOf(item.getPrice()));
+        InventoryItem item = inventoryDAO.getItemById(itemId);
+        if (item == null) return;
 
-            for (int i = 0; i < branchList.size(); i++) {
-                if (branchList.get(i).getBranchId().equals(item.getBranchId())) {
-                    spinnerBranch.setSelection(i);
-                    break;
-                }
+        etItemName.setText(item.getItemName());
+        etQuantity.setText(String.valueOf(item.getQuantity()));
+        etPrice.setText(String.valueOf(item.getPrice()));
+
+        for (int i = 0; i < branchList.size(); i++) {
+            if (branchList.get(i).getBranchId() == item.getBranchId()) {
+                spinnerBranch.setSelection(i);
+                break;
             }
-        });
+        }
     }
 
     private void saveItem() {
@@ -102,25 +105,23 @@ public class AddEditInventoryActivity extends AppCompatActivity {
         item.setPrice(price);
         item.setBranchId(selectedBranch.getBranchId());
 
-        if (itemId == null) {
-            firestoreManager.addInventoryItem(item, success -> {
-                if (success) {
-                    Toast.makeText(this, "Item added", Toast.LENGTH_SHORT).show();
-                    finish();
-                } else {
-                    Toast.makeText(this, "Failed to add item", Toast.LENGTH_SHORT).show();
-                }
-            });
+        if (itemId == -1) {
+            long newId = inventoryDAO.addItem(item);
+            if (newId != -1) {
+                Toast.makeText(this, "Item added", Toast.LENGTH_SHORT).show();
+                finish();
+            } else {
+                Toast.makeText(this, "Failed to add item", Toast.LENGTH_SHORT).show();
+            }
         } else {
             item.setItemId(itemId);
-            firestoreManager.updateInventoryItem(item, success -> {
-                if (success) {
-                    Toast.makeText(this, "Item updated", Toast.LENGTH_SHORT).show();
-                    finish();
-                } else {
-                    Toast.makeText(this, "Failed to update item", Toast.LENGTH_SHORT).show();
-                }
-            });
+            boolean success = inventoryDAO.updateItem(item);
+            if (success) {
+                Toast.makeText(this, "Item updated", Toast.LENGTH_SHORT).show();
+                finish();
+            } else {
+                Toast.makeText(this, "Failed to update item", Toast.LENGTH_SHORT).show();
+            }
         }
     }
 }

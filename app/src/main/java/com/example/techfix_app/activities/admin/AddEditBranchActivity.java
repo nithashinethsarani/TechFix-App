@@ -15,7 +15,7 @@ public class AddEditBranchActivity extends AppCompatActivity {
     private EditText etBranchName, etAddress, etCity, etPhone;
     private Button btnSave;
     private BranchDAO branchDAO;
-    private int branchId = -1; // -1 = add mode, otherwise edit mode
+    private int branchId = -1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -30,7 +30,6 @@ public class AddEditBranchActivity extends AppCompatActivity {
 
         branchDAO = new BranchDAO(this);
 
-        // check if editing existing branch
         if (getIntent().hasExtra("branchId")) {
             branchId = getIntent().getIntExtra("branchId", -1);
             loadBranchData();
@@ -67,7 +66,6 @@ public class AddEditBranchActivity extends AppCompatActivity {
         branch.setPhone(phone);
 
         if (branchId == -1) {
-            // ADD new branch
             long newId = branchDAO.addBranch(branch);
             if (newId != -1) {
                 Toast.makeText(this, "Branch added successfully", Toast.LENGTH_SHORT).show();
@@ -76,7 +74,6 @@ public class AddEditBranchActivity extends AppCompatActivity {
                 Toast.makeText(this, "Failed to add branch", Toast.LENGTH_SHORT).show();
             }
         } else {
-            // UPDATE existing branch
             branch.setBranchId(branchId);
             boolean success = branchDAO.updateBranch(branch);
             if (success) {
