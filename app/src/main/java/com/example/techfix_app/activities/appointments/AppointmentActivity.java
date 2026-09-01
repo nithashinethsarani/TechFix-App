@@ -1,6 +1,7 @@
 package com.example.techfix_app.activities.appointments;
 
 import android.Manifest;
+import android.app.DatePickerDialog;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Bundle;
@@ -23,6 +24,7 @@ import com.google.android.gms.location.Priority;
 import com.google.android.gms.tasks.CancellationTokenSource;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 import java.util.Locale;
 
@@ -57,6 +59,7 @@ public class AppointmentActivity extends AppCompatActivity {
         setupLocation();
         setupBranches();
         setupSubmitButton();
+        setupDatePicker();
 
         checkLocationPermissionAndFindBranch();
     }
@@ -108,6 +111,38 @@ public class AppointmentActivity extends AppCompatActivity {
 
     private void setupSubmitButton() {
         btnSubmitBooking.setOnClickListener(v -> submitAppointment());
+    }
+
+    private void setupDatePicker() {
+        editPreferredDate.setFocusable(false);
+        editPreferredDate.setClickable(true);
+
+        editPreferredDate.setOnClickListener(v -> {
+            Calendar calendar = Calendar.getInstance();
+            int year = calendar.get(Calendar.YEAR);
+            int month = calendar.get(Calendar.MONTH);
+            int day = calendar.get(Calendar.DAY_OF_MONTH);
+
+            DatePickerDialog datePickerDialog = new DatePickerDialog(
+                    this,
+                    (view, selectedYear, selectedMonth, selectedDay) -> {
+                        String formattedDate = String.format(
+                                Locale.getDefault(),
+                                "%02d/%02d/%04d",
+                                selectedDay,
+                                selectedMonth + 1,
+                                selectedYear
+                        );
+                        editPreferredDate.setText(formattedDate);
+                    },
+                    year, month, day
+            );
+
+            // Prevent selecting past dates
+            datePickerDialog.getDatePicker().setMinDate(calendar.getTimeInMillis());
+
+            datePickerDialog.show();
+        });
     }
 
     private void submitAppointment() {
