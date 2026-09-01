@@ -3,13 +3,19 @@ package com.example.techfix_app.activities.branches;
 import android.Manifest;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.techfix_app.R;
 import com.example.techfix_app.models.Branch;
@@ -26,7 +32,9 @@ public class BranchActivity extends AppCompatActivity {
 
     private FusedLocationProviderClient fusedLocationClient;
     private TextView tvNearestBranch;
+    private RecyclerView recyclerAllBranches;
     private Branch selectedBranch;
+    private List<Branch> branchList;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -34,9 +42,17 @@ public class BranchActivity extends AppCompatActivity {
         setContentView(R.layout.activity_branch);
 
         tvNearestBranch = findViewById(R.id.tvNearestBranch);
+        recyclerAllBranches = findViewById(R.id.recyclerAllBranches);
         Button btnConfirmBranch = findViewById(R.id.btnConfirmBranch);
 
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
+
+        // TODO: Replace loadDummyBranches() with Member 1's FirestoreManager call
+        branchList = loadDummyBranches();
+
+        // Show all branches in the list at the top
+        recyclerAllBranches.setLayoutManager(new LinearLayoutManager(this));
+        recyclerAllBranches.setAdapter(new BranchListAdapter(branchList));
 
         checkLocationPermissionAndFetch();
 
@@ -63,7 +79,7 @@ public class BranchActivity extends AppCompatActivity {
     }
 
     @Override
-    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == LOCATION_PERMISSION_REQUEST_CODE) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
@@ -85,10 +101,7 @@ public class BranchActivity extends AppCompatActivity {
                 double userLat = location.getLatitude();
                 double userLng = location.getLongitude();
 
-                // TODO: Replace loadDummyBranches() with Member 1's FirestoreManager call
-                List<Branch> branches = loadDummyBranches();
-
-                selectedBranch = LocationUtils.findNearestBranch(userLat, userLng, branches);
+                selectedBranch = LocationUtils.findNearestBranch(userLat, userLng, branchList);
 
                 if (selectedBranch != null) {
                     tvNearestBranch.setText(selectedBranch.getName());
@@ -105,5 +118,41 @@ public class BranchActivity extends AppCompatActivity {
         list.add(new Branch("branch_colombo", "TechFix Colombo", 6.9271, 79.8612));
         list.add(new Branch("branch_galle", "TechFix Galle", 6.0535, 80.2210));
         return list;
+    }
+
+    // Simple inline adapter to show all branches in a list
+    private static class BranchListAdapter extends RecyclerView.Adapter<BranchListAdapter.BranchViewHolder> {
+        private final List<Branch> branches;
+
+        BranchListAdapter(List<Branch> branches) {
+            this.branches = branches;
+        }
+
+        @NonNull
+        @Override
+        public BranchViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+            View view = LayoutInflater.from(parent.getContext())
+                    .inflate(R.layout.item_branch, parent, false);
+            return new BranchViewHolder(view);
+        }
+
+        @Override
+        public void onBindViewHolder(@NonNull BranchViewHolder holder, int position) {
+            holder.tvBranchName.setText(branches.get(position).getName());
+        }
+
+        @Override
+        public int getItemCount() {
+            return branches.size();
+        }
+
+        static class BranchViewHolder extends RecyclerView.ViewHolder {
+            TextView tvBranchName;
+
+            BranchViewHolder(@NonNull View itemView) {
+                super(itemView);
+                tvBranchName = itemView.findViewById(R.id.tvBranchName);
+            }
+        }
     }
 }
