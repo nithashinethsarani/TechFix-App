@@ -87,6 +87,7 @@
             android:name=".activities.repairs.RepairHistoryActivity"
             android:exported="false"
             android:windowSoftInputMode="adjustResize" />
+        <activity android:name=".activities.admin.AdminDashboardActivity" />
     </application>
 
 </manifest>
