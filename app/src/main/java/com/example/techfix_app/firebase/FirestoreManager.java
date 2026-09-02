@@ -1,8 +1,9 @@
 package com.example.techfix_app.firebase;
 
-import com.example.techfix_app.models.Service;
-import com.example.techfix_app.models.Branch;
 import com.example.techfix_app.models.User;
+import com.example.techfix_app.models.InventoryItem;
+import com.example.techfix_app.models.Technician;
+
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.DocumentReference;
@@ -10,17 +11,19 @@ import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QuerySnapshot;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 
 public class FirestoreManager {
 
-    private final FirebaseFirestore db;
+    private final FirebaseFirestore firestore;
 
     public FirestoreManager() {
-        db = FirebaseFirestore.getInstance();
+        firestore = FirebaseFirestore.getInstance();
     }
+
+    // =========================================================
+    // USER
+    // =========================================================
 
     // Save a customer/user profile
     public void saveUser(
@@ -28,19 +31,23 @@ public class FirestoreManager {
             User user,
             OnCompleteListener<Void> listener) {
 
-        db
+        firestore
                 .collection("users")
                 .document(uid)
                 .set(user)
                 .addOnCompleteListener(listener);
     }
 
+    // =========================================================
+    // GENERIC FIRESTORE METHODS
+    // =========================================================
+
     // Add a document with an automatically generated ID
     public Task<DocumentReference> addDocument(
             String collection,
             Map<String, Object> data) {
 
-        return db
+        return firestore
                 .collection(collection)
                 .add(data);
     }
@@ -51,7 +58,7 @@ public class FirestoreManager {
             String documentId,
             Map<String, Object> data) {
 
-        return db
+        return firestore
                 .collection(collection)
                 .document(documentId)
                 .set(data);
@@ -62,7 +69,7 @@ public class FirestoreManager {
             String collection,
             String documentId) {
 
-        return db
+        return firestore
                 .collection(collection)
                 .document(documentId)
                 .get();
@@ -72,7 +79,7 @@ public class FirestoreManager {
     public Task<QuerySnapshot> getCollection(
             String collection) {
 
-        return db
+        return firestore
                 .collection(collection)
                 .get();
     }
@@ -83,7 +90,7 @@ public class FirestoreManager {
             String documentId,
             Map<String, Object> updates) {
 
-        return db
+        return firestore
                 .collection(collection)
                 .document(documentId)
                 .update(updates);
@@ -94,121 +101,115 @@ public class FirestoreManager {
             String collection,
             String documentId) {
 
-        return db
+        return firestore
                 .collection(collection)
                 .document(documentId)
                 .delete();
     }
 
+    // =========================================================
+    // INVENTORY
+    // =========================================================
 
-    // SERVICES
+    // Get all inventory items
+    public Task<QuerySnapshot> getAllInventory() {
 
-    // Get all services from Firestore
-    public void getAllServices(OnServicesLoadedListener listener) {
-
-        db.collection("services")
-                .get()
-                .addOnSuccessListener(queryDocumentSnapshots -> {
-
-                    List<Service> serviceList = new ArrayList<>();
-
-                    for (DocumentSnapshot document : queryDocumentSnapshots.getDocuments()) {
-
-                        String id = document.getId();
-
-                        String serviceName =
-                                document.getString("serviceName");
-
-                        String deviceCategory =
-                                document.getString("deviceCategory");
-
-                        String description =
-                                document.getString("description");
-
-                        Double priceValue =
-                                document.getDouble("price");
-
-                        Boolean availableValue =
-                                document.getBoolean("available");
-
-                        double price =
-                                priceValue != null ? priceValue : 0.0;
-
-                        boolean available =
-                                availableValue != null && availableValue;
-
-                        Service service = new Service(
-                                id,
-                                deviceCategory != null ? deviceCategory : "",
-                                serviceName != null ? serviceName : "",
-                                price,
-                                description != null ? description : "",
-                                available
-                        );
-
-                        serviceList.add(service);
-                    }
-
-                    listener.onSuccess(serviceList);
-                })
-                .addOnFailureListener(listener::onFailure);
+        return firestore
+                .collection("inventory")
+                .get();
     }
 
+    // Add a new inventory item
+    public Task<DocumentReference> addInventoryItem(
+            InventoryItem item) {
 
-    // Callback interface for service loading
-    public interface OnServicesLoadedListener {
-
-        void onSuccess(List<Service> services);
-
-        void onFailure(Exception e);
+        return firestore
+                .collection("inventory")
+                .add(item);
     }
 
+    // Add or replace inventory item using a specific document ID
+    public Task<Void> setInventoryItem(
+            String documentId,
+            InventoryItem item) {
 
-    // BRANCHES
-
-    //get all branches from firestore
-    public void getAllBranches(OnBranchesLoadedListener listener) {
-
-        db.collection("branches")
-                .get()
-                .addOnSuccessListener(queryDocumentSnapshots -> {
-
-                    List<Branch> branchList = new ArrayList<>();
-
-                    for (DocumentSnapshot document : queryDocumentSnapshots.getDocuments()) {
-
-                        String id = document.getId();
-
-                        String name = document.getString("name");
-
-                        Double latitudeValue = document.getDouble("latitude");
-                        Double longitudeValue = document.getDouble("longitude");
-
-                        double latitude =
-                                latitudeValue != null ? latitudeValue : 0.0;
-
-                        double longitude =
-                                longitudeValue != null ? longitudeValue : 0.0;
-
-                        Branch branch = new Branch(
-                                id,
-                                name != null ? name : "",
-                                latitude,
-                                longitude
-                        );
-
-                        branchList.add(branch);
-                    }
-
-                    listener.onSuccess(branchList);
-                })
-                .addOnFailureListener(listener::onFailure);
+        return firestore
+                .collection("inventory")
+                .document(documentId)
+                .set(item);
     }
 
-    public interface OnBranchesLoadedListener {
+    // Update selected inventory fields
+    public Task<Void> updateInventoryItem(
+            String documentId,
+            Map<String, Object> updates) {
 
-        void onSuccess(List<Branch> branches);
+        return firestore
+                .collection("inventory")
+                .document(documentId)
+                .update(updates);
+    }
 
-        void onFailure(Exception e);
+    // Delete an inventory item
+    public Task<Void> deleteInventoryItem(
+            String documentId) {
+
+        return firestore
+                .collection("inventory")
+                .document(documentId)
+                .delete();
+    }
+
+    // =========================================================
+    // TECHNICIANS
+    // =========================================================
+
+    // Get all technicians
+    public Task<QuerySnapshot> getAllTechnicians() {
+
+        return firestore
+                .collection("technicians")
+                .get();
+    }
+
+    // Add a new technician
+    public Task<DocumentReference> addTechnician(
+            Technician technician) {
+
+        return firestore
+                .collection("technicians")
+                .add(technician);
+    }
+
+    // Add or replace technician using a specific document ID
+    public Task<Void> setTechnician(
+            String documentId,
+            Technician technician) {
+
+        return firestore
+                .collection("technicians")
+                .document(documentId)
+                .set(technician);
+    }
+
+    // Update selected technician fields
+    public Task<Void> updateTechnician(
+            String documentId,
+            Map<String, Object> updates) {
+
+        return firestore
+                .collection("technicians")
+                .document(documentId)
+                .update(updates);
+    }
+
+    // Delete a technician
+    public Task<Void> deleteTechnician(
+            String documentId) {
+
+        return firestore
+                .collection("technicians")
+                .document(documentId)
+                .delete();
     }
 }
