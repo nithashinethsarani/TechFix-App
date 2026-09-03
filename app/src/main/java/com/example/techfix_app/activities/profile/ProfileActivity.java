@@ -189,6 +189,7 @@ public class ProfileActivity extends AppCompatActivity {
         String address =
                 etAddress.getText().toString().trim();
 
+        String role = "user";
 
         // ----------------------------------------------------
         // VALIDATION
@@ -230,7 +231,8 @@ public class ProfileActivity extends AppCompatActivity {
                 name,
                 email,
                 phone,
-                address
+                address,
+                role
         );
 
 

@@ -7,6 +7,7 @@ public class User {
     private String email;
     private String phone;
     private String address;
+    private String role;
 
     // Empty constructor required by Firebase Firestore
     public User() {
@@ -15,21 +16,23 @@ public class User {
     // Existing constructor
     // We keep this so your existing SignupActivity code
     // does not break.
-    public User(String userId, String name, String email) {
+    public User(String userId, String name, String email,String role) {
         this.userId = userId;
         this.name = name;
         this.email = email;
+        this.role = role;
     }
 
     // New constructor for the complete profile
     public User(String userId, String name, String email,
-                String phone, String address) {
+                String phone, String address, String role) {
 
         this.userId = userId;
         this.name = name;
         this.email = email;
         this.phone = phone;
         this.address = address;
+        this.role = role;
     }
 
     // Getters
@@ -53,6 +56,7 @@ public class User {
     public String getAddress() {
         return address;
     }
+    public String getRole() {return role;}
 
     // Setters
     // Firestore can use these when converting
@@ -77,4 +81,6 @@ public class User {
     public void setAddress(String address) {
         this.address = address;
     }
+
+    public void setRole(String role){this.role = role;}
 }
