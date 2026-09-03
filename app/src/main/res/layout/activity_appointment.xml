@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="@color/dark_blue">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -10,117 +11,236 @@
         android:orientation="vertical"
         android:padding="20dp">
 
-        <!-- Page Title -->
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Book an Appointment"
-            android:textSize="26sp"
+            android:textSize="24sp"
             android:textStyle="bold"
+            android:textColor="@color/white"
             android:gravity="center"
-            android:layout_marginBottom="24dp" />
+            android:layout_marginBottom="20dp" />
 
-        <!-- Selected Service Section -->
+        <!-- Selected Service Card -->
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Selected Service"
-            android:textSize="16sp"
+            android:textSize="14sp"
             android:textStyle="bold"
-            android:layout_marginBottom="8dp" />
+            android:textColor="@color/text_secondary"
+            android:layout_marginBottom="6dp" />
 
-        <TextView
-            android:id="@+id/textSelectedService"
+        <androidx.cardview.widget.CardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Service Name"
-            android:textSize="17sp"
-            android:padding="16dp"
-            android:background="#EEEEEE"
-            android:layout_marginBottom="20dp" />
+            app:cardBackgroundColor="@color/white"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="0dp"
+            android:layout_marginBottom="20dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:padding="14dp">
+
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:src="@drawable/ic_price" />
+
+                <TextView
+                    android:id="@+id/textSelectedService"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="10dp"
+                    android:textSize="15sp"
+                    android:textColor="@color/dark_blue" />
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
 
         <!-- Customer Name -->
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Customer Name"
-            android:textSize="16sp"
+            android:textSize="14sp"
             android:textStyle="bold"
+            android:textColor="@color/text_secondary"
             android:layout_marginBottom="6dp" />
 
-        <EditText
-            android:id="@+id/editCustomerName"
+        <androidx.cardview.widget.CardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Enter your name"
-            android:inputType="textPersonName"
-            android:padding="14dp"
-            android:layout_marginBottom="16dp" />
+            app:cardBackgroundColor="@color/white"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="0dp"
+            android:layout_marginBottom="16dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:paddingHorizontal="14dp">
+
+                <ImageView
+                    android:layout_width="18dp"
+                    android:layout_height="18dp"
+                    android:src="@drawable/ic_person" />
+
+                <EditText
+                    android:id="@+id/editCustomerName"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="10dp"
+                    android:hint="Enter your name"
+                    android:background="@android:color/transparent"
+                    android:textColor="@color/dark_blue"
+                    android:inputType="textPersonName"
+                    android:paddingVertical="12dp" />
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
 
         <!-- Phone Number -->
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Phone Number"
-            android:textSize="16sp"
+            android:textSize="14sp"
             android:textStyle="bold"
+            android:textColor="@color/text_secondary"
             android:layout_marginBottom="6dp" />
 
-        <EditText
-            android:id="@+id/editPhoneNumber"
+        <androidx.cardview.widget.CardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Enter your phone number"
-            android:inputType="phone"
-            android:padding="14dp"
-            android:layout_marginBottom="16dp" />
+            app:cardBackgroundColor="@color/white"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="0dp"
+            android:layout_marginBottom="16dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:paddingHorizontal="14dp">
+
+                <ImageView
+                    android:layout_width="18dp"
+                    android:layout_height="18dp"
+                    android:src="@drawable/ic_phone" />
+
+                <EditText
+                    android:id="@+id/editPhoneNumber"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="10dp"
+                    android:hint="Enter your phone number"
+                    android:background="@android:color/transparent"
+                    android:textColor="@color/dark_blue"
+                    android:inputType="phone"
+                    android:paddingVertical="12dp" />
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
 
         <!-- Preferred Date -->
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Preferred Date"
-            android:textSize="16sp"
+            android:textSize="14sp"
             android:textStyle="bold"
+            android:textColor="@color/text_secondary"
             android:layout_marginBottom="6dp" />
 
-        <EditText
-            android:id="@+id/editPreferredDate"
+        <androidx.cardview.widget.CardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Select preferred date"
-            android:inputType="date"
-            android:padding="14dp"
-            android:layout_marginBottom="20dp" />
+            app:cardBackgroundColor="@color/white"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="0dp"
+            android:layout_marginBottom="20dp">
 
-        <!-- Nearest Branch -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:paddingHorizontal="14dp">
+
+                <ImageView
+                    android:layout_width="18dp"
+                    android:layout_height="18dp"
+                    android:src="@drawable/ic_calendar" />
+
+                <EditText
+                    android:id="@+id/editPreferredDate"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="10dp"
+                    android:hint="Select preferred date"
+                    android:background="@android:color/transparent"
+                    android:textColor="@color/dark_blue"
+                    android:focusable="false"
+                    android:paddingVertical="12dp" />
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <!-- Branch Assignment -->
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Branch Assignment"
-            android:textSize="16sp"
+            android:textSize="14sp"
             android:textStyle="bold"
-            android:layout_marginBottom="8dp" />
+            android:textColor="@color/text_secondary"
+            android:layout_marginBottom="6dp" />
 
-        <TextView
-            android:id="@+id/textNearestBranch"
+        <androidx.cardview.widget.CardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Finding nearest branch..."
-            android:textSize="16sp"
-            android:padding="16dp"
-            android:background="#EEEEEE"
-            android:layout_marginBottom="24dp" />
+            app:cardBackgroundColor="@color/white"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="0dp"
+            android:layout_marginBottom="24dp">
 
-        <!-- Submit Button -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:padding="14dp">
+
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:src="@drawable/ic_location" />
+
+                <TextView
+                    android:id="@+id/textNearestBranch"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="10dp"
+                    android:textSize="15sp"
+                    android:textColor="@color/dark_blue" />
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
         <Button
             android:id="@+id/btnSubmitBooking"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Book Appointment"
-            android:textSize="16sp"
-            android:padding="14dp" />
+            android:textColor="@color/dark_blue"
+            android:backgroundTint="@color/white"
+            android:textStyle="bold"
+            android:layout_marginBottom="20dp" />
 
     </LinearLayout>
-
 </ScrollView>
