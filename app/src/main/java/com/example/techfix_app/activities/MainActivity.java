@@ -8,7 +8,6 @@ import com.example.techfix_app.R;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.example.techfix_app.activities.admin.AdminDashboardActivity;
 import com.example.techfix_app.activities.appointments.AppointmentActivity;
 import com.example.techfix_app.activities.auth.LoginActivity;
 import com.example.techfix_app.activities.branches.BranchActivity;
@@ -37,20 +36,23 @@ public class MainActivity extends AppCompatActivity {
         initializeViews();
         setupClickListeners();
 
-
-        startActivity(new Intent(MainActivity.this, AdminDashboardActivity.class));
-        finish();
-
     }
 
     @Override
     protected void onStart() {
         super.onStart();
+        FirebaseAuth mAuth = FirebaseAuth.getInstance();
+        FirebaseUser currentUser = mAuth.getCurrentUser();
 
-
+        if (currentUser == null) {
+            Intent intent = new Intent(MainActivity.this, LoginActivity.class);
+            startActivity(intent);
+            finish();
+        }
     }
 
     private void initializeViews() {
+
         btnServices = findViewById(R.id.btnServices);
         btnAppointments = findViewById(R.id.btnAppointments);
         btnTrackRepair = findViewById(R.id.btnTrackRepair);
@@ -61,6 +63,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void setupClickListeners() {
 
+        // View Services
         btnServices.setOnClickListener(v -> {
             Intent intent = new Intent(
                     MainActivity.this,
@@ -69,6 +72,8 @@ public class MainActivity extends AppCompatActivity {
             startActivity(intent);
         });
 
+        // Book Appointment
+        // Customer should select a service first
         btnAppointments.setOnClickListener(v -> {
             Intent intent = new Intent(
                     MainActivity.this,
@@ -77,6 +82,7 @@ public class MainActivity extends AppCompatActivity {
             startActivity(intent);
         });
 
+        // Track Repair
         btnTrackRepair.setOnClickListener(v -> {
             Intent intent = new Intent(
                     MainActivity.this,
@@ -85,6 +91,7 @@ public class MainActivity extends AppCompatActivity {
             startActivity(intent);
         });
 
+        // Repair History
         btnRepairHistory.setOnClickListener(v -> {
             Intent intent = new Intent(
                     MainActivity.this,
@@ -93,6 +100,7 @@ public class MainActivity extends AppCompatActivity {
             startActivity(intent);
         });
 
+        // Branches
         btnBranches.setOnClickListener(v -> {
             Intent intent = new Intent(
                     MainActivity.this,
@@ -101,6 +109,7 @@ public class MainActivity extends AppCompatActivity {
             startActivity(intent);
         });
 
+        // Profile
         btnProfile.setOnClickListener(v -> {
             Intent intent = new Intent(
                     MainActivity.this,
