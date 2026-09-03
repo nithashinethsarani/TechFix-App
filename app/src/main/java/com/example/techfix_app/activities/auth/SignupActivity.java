@@ -60,6 +60,7 @@ public class SignupActivity extends AppCompatActivity {
         String name = etName.getText().toString().trim();
         String email = etEmail.getText().toString().trim();
         String password = etPassword.getText().toString().trim();
+        String role = "user";
 
         // Basic validation
         if (name.isEmpty() || email.isEmpty() || password.isEmpty()) {
@@ -102,7 +103,7 @@ public class SignupActivity extends AppCompatActivity {
                 }
 
                 // Create our User model
-                User user = new User(uid, name, email);
+                User user = new User(uid, name, email,role);
 
                 // Save additional customer information to Firestore
                 firestoreManager.saveUser(

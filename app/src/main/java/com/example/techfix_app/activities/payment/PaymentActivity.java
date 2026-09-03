@@ -8,6 +8,7 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.techfix_app.R;
+import com.example.techfix_app.firebase.FirestoreManager;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 public class PaymentActivity extends AppCompatActivity {
