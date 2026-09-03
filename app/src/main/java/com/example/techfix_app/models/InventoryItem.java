@@ -17,7 +17,6 @@ public class InventoryItem {
     public void setQuantity(int quantity) { this.quantity = quantity; }
     public double getPrice() { return price; }
     public void setPrice(double price) { this.price = price; }
-
     public int getBranchId() { return branchId; }
     public void setBranchId(int branchId) { this.branchId = branchId; }
 }
