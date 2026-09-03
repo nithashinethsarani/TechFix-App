@@ -16,6 +16,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
+import com.example.techfix_app.firebase.FirestoreManager;
 import com.example.techfix_app.R;
 import com.example.techfix_app.models.Branch;
 import com.google.android.gms.location.FusedLocationProviderClient;
@@ -57,11 +58,13 @@ public class AppointmentActivity extends AppCompatActivity {
         initializeViews();
         getSelectedServiceDetails();
         setupLocation();
-        setupBranches();
+
+        branchList = new ArrayList<>();
+
         setupSubmitButton();
         setupDatePicker();
 
-        checkLocationPermissionAndFindBranch();
+        loadBranchesFromFirestore();
     }
 
     private void initializeViews() {
@@ -101,12 +104,6 @@ public class AppointmentActivity extends AppCompatActivity {
 
     private void setupLocation() {
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
-    }
-
-    private void setupBranches() {
-        branchList = new ArrayList<>();
-        branchList.add(new Branch("1", "Colombo Branch", 6.9271, 79.8612));
-        branchList.add(new Branch("2", "Galle Branch", 6.0535, 80.2210));
     }
 
     private void setupSubmitButton() {
@@ -164,13 +161,69 @@ public class AppointmentActivity extends AppCompatActivity {
         finish();
     }
 
-    private void checkLocationPermissionAndFindBranch() {
-        boolean hasFineLocation = ContextCompat.checkSelfPermission(
-                this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED;
-        boolean hasCoarseLocation = ContextCompat.checkSelfPermission(
-                this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED;
+    private void loadBranchesFromFirestore() {
 
-        if (!hasFineLocation && !hasCoarseLocation) {
+        textNearestBranch.setText("Loading branches...");
+
+        FirestoreManager firestoreManager = new FirestoreManager();
+
+        firestoreManager.getAllBranches(
+                new FirestoreManager.OnBranchesLoadedListener() {
+
+                    @Override
+                    public void onSuccess(List<Branch> branches) {
+
+                        branchList = branches;
+
+                        if (branchList.isEmpty()) {
+
+                            textNearestBranch.setText(
+                                    "No branches available"
+                            );
+
+                            return;
+                        }
+
+                        checkLocationPermissionAndFindBranch();
+                    }
+
+                    @Override
+                    public void onFailure(Exception e) {
+
+                        textNearestBranch.setText(
+                                "Failed to load branches"
+                        );
+
+                        Toast.makeText(
+                                AppointmentActivity.this,
+                                "Failed to load branches: " + e.getMessage(),
+                                Toast.LENGTH_LONG
+                        ).show();
+                    }
+                }
+        );
+    }
+
+    private void checkLocationPermissionAndFindBranch() {
+
+        boolean hasFineLocation =
+                ContextCompat.checkSelfPermission(
+                        this,
+                        Manifest.permission.ACCESS_FINE_LOCATION
+                ) == PackageManager.PERMISSION_GRANTED;
+
+        boolean hasCoarseLocation =
+                ContextCompat.checkSelfPermission(
+                        this,
+                        Manifest.permission.ACCESS_COARSE_LOCATION
+                ) == PackageManager.PERMISSION_GRANTED;
+
+        if (hasFineLocation || hasCoarseLocation) {
+
+            findNearestBranch();
+
+        } else {
+
             ActivityCompat.requestPermissions(
                     this,
                     new String[]{
@@ -179,39 +232,67 @@ public class AppointmentActivity extends AppCompatActivity {
                     },
                     LOCATION_PERMISSION_REQUEST_CODE
             );
-        } else {
-            findNearestBranch();
         }
     }
 
     @SuppressWarnings("MissingPermission")
     private void findNearestBranch() {
-        boolean hasFineLocation = ContextCompat.checkSelfPermission(
-                this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED;
-        boolean hasCoarseLocation = ContextCompat.checkSelfPermission(
-                this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED;
+
+        boolean hasFineLocation =
+                ContextCompat.checkSelfPermission(
+                        this,
+                        Manifest.permission.ACCESS_FINE_LOCATION
+                ) == PackageManager.PERMISSION_GRANTED;
+
+        boolean hasCoarseLocation =
+                ContextCompat.checkSelfPermission(
+                        this,
+                        Manifest.permission.ACCESS_COARSE_LOCATION
+                ) == PackageManager.PERMISSION_GRANTED;
 
         if (!hasFineLocation && !hasCoarseLocation) {
+            textNearestBranch.setText("Location permission required");
             return;
         }
 
-        fusedLocationClient.getLastLocation().addOnSuccessListener(location -> {
+        textNearestBranch.setText("Getting your location...");
+
+        CancellationTokenSource cancellationTokenSource =
+                new CancellationTokenSource();
+
+        fusedLocationClient.getCurrentLocation(
+                Priority.PRIORITY_HIGH_ACCURACY,
+                cancellationTokenSource.getToken()
+        ).addOnSuccessListener(location -> {
+
             if (location != null) {
+
                 calculateAndSetNearestBranch(location);
+
             } else {
-                // If last location is cached null, fetch current location directly
-                CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
-                fusedLocationClient.getCurrentLocation(
-                        Priority.PRIORITY_BALANCED_POWER_ACCURACY,
-                        cancellationTokenSource.getToken()
-                ).addOnSuccessListener(currentLocation -> {
-                    if (currentLocation != null) {
-                        calculateAndSetNearestBranch(currentLocation);
-                    } else {
-                        textNearestBranch.setText("Nearest Branch: Location unavailable");
-                    }
-                });
+
+                textNearestBranch.setText(
+                        "Unable to get your current location"
+                );
+
+                Toast.makeText(
+                        AppointmentActivity.this,
+                        "Could not determine your location. Please make sure Location/GPS is turned on.",
+                        Toast.LENGTH_LONG
+                ).show();
             }
+
+        }).addOnFailureListener(e -> {
+
+            textNearestBranch.setText(
+                    "Location error"
+            );
+
+            Toast.makeText(
+                    AppointmentActivity.this,
+                    "Location error: " + e.getMessage(),
+                    Toast.LENGTH_LONG
+            ).show();
         });
     }
 
@@ -254,13 +335,39 @@ public class AppointmentActivity extends AppCompatActivity {
             @NonNull String[] permissions,
             @NonNull int[] grantResults
     ) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        super.onRequestPermissionsResult(
+                requestCode,
+                permissions,
+                grantResults
+        );
 
         if (requestCode == LOCATION_PERMISSION_REQUEST_CODE) {
-            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+
+            boolean locationPermissionGranted = false;
+
+            for (int result : grantResults) {
+
+                if (result == PackageManager.PERMISSION_GRANTED) {
+                    locationPermissionGranted = true;
+                    break;
+                }
+            }
+
+            if (locationPermissionGranted) {
+
                 findNearestBranch();
+
             } else {
-                textNearestBranch.setText("Nearest Branch: Permission denied");
+
+                textNearestBranch.setText(
+                        "Nearest Branch: Location permission denied"
+                );
+
+                Toast.makeText(
+                        this,
+                        "Location permission is required to find the nearest branch.",
+                        Toast.LENGTH_LONG
+                ).show();
             }
         }
     }
