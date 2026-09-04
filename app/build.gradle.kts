@@ -53,6 +53,7 @@ dependencies {
     implementation("com.google.firebase:firebase-storage")
     implementation("com.google.android.gms:play-services-location:21.2.0")
 
+    val roomVersion = "2.5.2"
     implementation("com.github.bumptech.glide:glide:4.16.0")
 
     val roomVersion = "2.7.1"
