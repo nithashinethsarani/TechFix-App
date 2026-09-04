@@ -5,7 +5,10 @@
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.CAMERA" />
-    <uses-feature android:name="android.hardware.camera" android:required="false" />
+
+    <uses-feature
+        android:name="android.hardware.camera"
+        android:required="false" />
 
     <!-- Query intent for Android 11+ -->
     <queries>
@@ -49,7 +52,6 @@
             android:name=".activities.admin.UploadRepairImageActivity"
             android:exported="false"
             android:windowSoftInputMode="adjustResize" />
-
         <activity
             android:name=".activities.services.ServiceDetailsActivity"
             android:exported="false" />
@@ -61,6 +63,7 @@
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
@@ -98,7 +101,6 @@
             android:windowSoftInputMode="adjustResize" />
         <activity android:name=".activities.admin.AdminDashboardActivity" />
 
-
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.fileprovider"
@@ -109,6 +111,14 @@
                 android:resource="@xml/file_paths" />
         </provider>
 
+        <activity
+            android:name=".activities.admin.AddEditServiceActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+        <activity
+            android:name=".activities.admin.ServiceManagementActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
     </application>
 
 </manifest>

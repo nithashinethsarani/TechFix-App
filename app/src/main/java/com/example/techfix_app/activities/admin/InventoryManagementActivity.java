@@ -93,9 +93,8 @@ public class InventoryManagementActivity extends AppCompatActivity {
         loadInventory();
     }
 
-    /**
-     * Load all inventory items from Firestore
-     */
+
+    //Load all inventory items from Firestore
     private void loadInventory() {
 
         firestoreManager.getAllInventory()

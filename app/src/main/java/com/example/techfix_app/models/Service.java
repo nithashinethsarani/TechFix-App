@@ -1,26 +1,40 @@
 package com.example.techfix_app.models;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class Service {
 
     private String id;
-    private String deviceCategory;   // "Computer" or "Mobile"
-    private String serviceName;
-    private double price;
+    private String name;
     private String description;
-    private boolean available;       // false = spare parts unavailable
+    private double price;
+    private String deviceCategory;
+    private String availability;
+    private List<String> inventoryItemIds;
 
-    // Required empty constructor for Firestore
     public Service() {
+        inventoryItemIds = new ArrayList<>();
     }
 
-    public Service(String id, String deviceCategory, String serviceName,
-                   double price, String description, boolean available) {
+    public Service(String id,
+                   String name,
+                   String description,
+                   double price,
+                   String deviceCategory,
+                   String availability,
+                   List<String> inventoryItemIds) {
+
         this.id = id;
-        this.deviceCategory = deviceCategory;
-        this.serviceName = serviceName;
-        this.price = price;
+        this.name = name;
         this.description = description;
-        this.available = available;
+        this.price = price;
+        this.deviceCategory = deviceCategory;
+        this.availability = availability;
+
+        this.inventoryItemIds = inventoryItemIds == null
+                ? new ArrayList<>()
+                : inventoryItemIds;
     }
 
     public String getId() {
@@ -31,28 +45,12 @@ public class Service {
         this.id = id;
     }
 
-    public String getDeviceCategory() {
-        return deviceCategory;
+    public String getName() {
+        return name;
     }
 
-    public void setDeviceCategory(String deviceCategory) {
-        this.deviceCategory = deviceCategory;
-    }
-
-    public String getServiceName() {
-        return serviceName;
-    }
-
-    public void setServiceName(String serviceName) {
-        this.serviceName = serviceName;
-    }
-
-    public double getPrice() {
-        return price;
-    }
-
-    public void setPrice(double price) {
-        this.price = price;
+    public void setName(String name) {
+        this.name = name;
     }
 
     public String getDescription() {
@@ -63,11 +61,37 @@ public class Service {
         this.description = description;
     }
 
-    public boolean isAvailable() {
-        return available;
+    public double getPrice() {
+        return price;
     }
 
-    public void setAvailable(boolean available) {
-        this.available = available;
+    public void setPrice(double price) {
+        this.price = price;
+    }
+
+    public String getDeviceCategory() {
+        return deviceCategory;
+    }
+
+    public void setDeviceCategory(String deviceCategory) {
+        this.deviceCategory = deviceCategory;
+    }
+
+    public String getAvailability() {
+        return availability;
+    }
+
+    public void setAvailability(String availability) {
+        this.availability = availability;
+    }
+
+    public List<String> getInventoryItemIds() {
+        return inventoryItemIds;
+    }
+
+    public void setInventoryItemIds(List<String> inventoryItemIds) {
+        this.inventoryItemIds = inventoryItemIds == null
+                ? new ArrayList<>()
+                : inventoryItemIds;
     }
 }
