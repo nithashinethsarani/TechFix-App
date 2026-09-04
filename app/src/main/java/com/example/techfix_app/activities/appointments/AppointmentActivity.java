@@ -18,6 +18,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
+import com.example.techfix_app.firebase.FirestoreManager;
 import com.example.techfix_app.R;
 import com.example.techfix_app.models.Branch;
 import com.google.android.gms.location.FusedLocationProviderClient;
@@ -61,12 +62,18 @@ public class AppointmentActivity extends AppCompatActivity {
         initializeViews();
         getSelectedServiceDetails();
         setupLocation();
-        setupBranches();
+
+        // Initialize branch list
+        branchList = new ArrayList<>();
+
+        // Setup available time slots
         setupTimeSlotSpinner();
+
         setupSubmitButton();
         setupDatePicker();
 
-        checkLocationPermissionAndFindBranch();
+        // Load branches from Firestore
+        loadBranchesFromFirestore();
     }
 
     private void initializeViews() {
@@ -109,14 +116,8 @@ public class AppointmentActivity extends AppCompatActivity {
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
     }
 
-    private void setupBranches() {
-        branchList = new ArrayList<>();
-        branchList.add(new Branch("1", "Colombo Branch", 6.9271, 79.8612));
-        branchList.add(new Branch("2", "Galle Branch", 6.0535, 80.2210));
-    }
-
-    // TODO: Once Member 3's technician-availability logic is ready,
-// replace this dummy list with real available time slots for the selected branch/date
+    // Setup available time slots
+    // TODO: Replace with real technician availability when Member 3 logic is ready
     private void setupTimeSlotSpinner() {
         String[] timeSlots = {
                 "9:00 AM - 10:00 AM",
@@ -132,7 +133,11 @@ public class AppointmentActivity extends AppCompatActivity {
                 android.R.layout.simple_spinner_item,
                 timeSlots
         );
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+
+        adapter.setDropDownViewResource(
+                android.R.layout.simple_spinner_dropdown_item
+        );
+
         spinnerTimeSlot.setAdapter(adapter);
     }
 
@@ -145,7 +150,9 @@ public class AppointmentActivity extends AppCompatActivity {
         editPreferredDate.setClickable(true);
 
         editPreferredDate.setOnClickListener(v -> {
+
             Calendar calendar = Calendar.getInstance();
+
             int year = calendar.get(Calendar.YEAR);
             int month = calendar.get(Calendar.MONTH);
             int day = calendar.get(Calendar.DAY_OF_MONTH);
@@ -153,6 +160,7 @@ public class AppointmentActivity extends AppCompatActivity {
             DatePickerDialog datePickerDialog = new DatePickerDialog(
                     this,
                     (view, selectedYear, selectedMonth, selectedDay) -> {
+
                         String formattedDate = String.format(
                                 Locale.getDefault(),
                                 "%02d/%02d/%04d",
@@ -160,47 +168,127 @@ public class AppointmentActivity extends AppCompatActivity {
                                 selectedMonth + 1,
                                 selectedYear
                         );
+
                         editPreferredDate.setText(formattedDate);
                     },
-                    year, month, day
+                    year,
+                    month,
+                    day
             );
 
             // Prevent selecting past dates
-            datePickerDialog.getDatePicker().setMinDate(calendar.getTimeInMillis());
+            datePickerDialog.getDatePicker()
+                    .setMinDate(calendar.getTimeInMillis());
 
             datePickerDialog.show();
         });
     }
 
     private void submitAppointment() {
-        String name = editCustomerName.getText().toString().trim();
-        String phone = editPhoneNumber.getText().toString().trim();
-        String date = editPreferredDate.getText().toString().trim();
+
+        String name = editCustomerName.getText()
+                .toString()
+                .trim();
+
+        String phone = editPhoneNumber.getText()
+                .toString()
+                .trim();
+
+        String date = editPreferredDate.getText()
+                .toString()
+                .trim();
+
         String timeSlot = spinnerTimeSlot.getSelectedItem() != null
                 ? spinnerTimeSlot.getSelectedItem().toString()
                 : "";
 
         if (name.isEmpty() || phone.isEmpty() || date.isEmpty()) {
-            Toast.makeText(this, "Please fill all fields", Toast.LENGTH_SHORT).show();
+
+            Toast.makeText(
+                    this,
+                    "Please fill all fields",
+                    Toast.LENGTH_SHORT
+            ).show();
+
             return;
         }
 
         Toast.makeText(
                 this,
-                "Appointment booked for " + serviceName + " on " + date + " at " + timeSlot,
+                "Appointment booked for " + serviceName
+                        + " on " + date
+                        + " at " + timeSlot,
                 Toast.LENGTH_LONG
         ).show();
 
         finish();
     }
 
-    private void checkLocationPermissionAndFindBranch() {
-        boolean hasFineLocation = ContextCompat.checkSelfPermission(
-                this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED;
-        boolean hasCoarseLocation = ContextCompat.checkSelfPermission(
-                this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED;
+    private void loadBranchesFromFirestore() {
 
-        if (!hasFineLocation && !hasCoarseLocation) {
+        textNearestBranch.setText("Loading branches...");
+
+        FirestoreManager firestoreManager =
+                new FirestoreManager();
+
+        firestoreManager.getAllBranches(
+                new FirestoreManager.OnBranchesLoadedListener() {
+
+                    @Override
+                    public void onSuccess(List<Branch> branches) {
+
+                        branchList = branches;
+
+                        if (branchList.isEmpty()) {
+
+                            textNearestBranch.setText(
+                                    "No branches available"
+                            );
+
+                            return;
+                        }
+
+                        checkLocationPermissionAndFindBranch();
+                    }
+
+                    @Override
+                    public void onFailure(Exception e) {
+
+                        textNearestBranch.setText(
+                                "Failed to load branches"
+                        );
+
+                        Toast.makeText(
+                                AppointmentActivity.this,
+                                "Failed to load branches: "
+                                        + e.getMessage(),
+                                Toast.LENGTH_LONG
+                        ).show();
+                    }
+                }
+        );
+    }
+
+    private void checkLocationPermissionAndFindBranch() {
+
+        boolean hasFineLocation =
+                ContextCompat.checkSelfPermission(
+                        this,
+                        Manifest.permission.ACCESS_FINE_LOCATION
+                ) == PackageManager.PERMISSION_GRANTED;
+
+        boolean hasCoarseLocation =
+                ContextCompat.checkSelfPermission(
+                        this,
+                        Manifest.permission.ACCESS_COARSE_LOCATION
+                ) == PackageManager.PERMISSION_GRANTED;
+
+        if (hasFineLocation || hasCoarseLocation) {
+
+            findNearestBranch();
+
+        } else {
+
             ActivityCompat.requestPermissions(
                     this,
                     new String[]{
@@ -209,48 +297,89 @@ public class AppointmentActivity extends AppCompatActivity {
                     },
                     LOCATION_PERMISSION_REQUEST_CODE
             );
-        } else {
-            findNearestBranch();
         }
     }
 
     @SuppressWarnings("MissingPermission")
     private void findNearestBranch() {
-        boolean hasFineLocation = ContextCompat.checkSelfPermission(
-                this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED;
-        boolean hasCoarseLocation = ContextCompat.checkSelfPermission(
-                this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED;
+
+        boolean hasFineLocation =
+                ContextCompat.checkSelfPermission(
+                        this,
+                        Manifest.permission.ACCESS_FINE_LOCATION
+                ) == PackageManager.PERMISSION_GRANTED;
+
+        boolean hasCoarseLocation =
+                ContextCompat.checkSelfPermission(
+                        this,
+                        Manifest.permission.ACCESS_COARSE_LOCATION
+                ) == PackageManager.PERMISSION_GRANTED;
 
         if (!hasFineLocation && !hasCoarseLocation) {
+
+            textNearestBranch.setText(
+                    "Location permission required"
+            );
+
             return;
         }
 
-        fusedLocationClient.getLastLocation().addOnSuccessListener(location -> {
+        textNearestBranch.setText(
+                "Getting your location..."
+        );
+
+        CancellationTokenSource cancellationTokenSource =
+                new CancellationTokenSource();
+
+        fusedLocationClient.getCurrentLocation(
+                Priority.PRIORITY_HIGH_ACCURACY,
+                cancellationTokenSource.getToken()
+        ).addOnSuccessListener(location -> {
+
             if (location != null) {
+
                 calculateAndSetNearestBranch(location);
+
             } else {
-                // If last location is cached null, fetch current location directly
-                CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
-                fusedLocationClient.getCurrentLocation(
-                        Priority.PRIORITY_BALANCED_POWER_ACCURACY,
-                        cancellationTokenSource.getToken()
-                ).addOnSuccessListener(currentLocation -> {
-                    if (currentLocation != null) {
-                        calculateAndSetNearestBranch(currentLocation);
-                    } else {
-                        textNearestBranch.setText("Nearest Branch: Location unavailable");
-                    }
-                });
+
+                textNearestBranch.setText(
+                        "Unable to get your current location"
+                );
+
+                Toast.makeText(
+                        AppointmentActivity.this,
+                        "Could not determine your location. "
+                                + "Please make sure Location/GPS is turned on.",
+                        Toast.LENGTH_LONG
+                ).show();
             }
+
+        }).addOnFailureListener(e -> {
+
+            textNearestBranch.setText(
+                    "Location error"
+            );
+
+            Toast.makeText(
+                    AppointmentActivity.this,
+                    "Location error: " + e.getMessage(),
+                    Toast.LENGTH_LONG
+            ).show();
         });
     }
 
-    private void calculateAndSetNearestBranch(Location userLocation) {
+    private void calculateAndSetNearestBranch(
+            Location userLocation) {
+
         Branch nearestBranch = null;
-        float minimumDistanceInMeters = Float.MAX_VALUE;
+
+        float minimumDistanceInMeters =
+                Float.MAX_VALUE;
 
         for (Branch branch : branchList) {
+
             float[] distanceResult = new float[1];
+
             Location.distanceBetween(
                     userLocation.getLatitude(),
                     userLocation.getLongitude(),
@@ -259,14 +388,21 @@ public class AppointmentActivity extends AppCompatActivity {
                     distanceResult
             );
 
-            if (distanceResult[0] < minimumDistanceInMeters) {
-                minimumDistanceInMeters = distanceResult[0];
+            if (distanceResult[0] <
+                    minimumDistanceInMeters) {
+
+                minimumDistanceInMeters =
+                        distanceResult[0];
+
                 nearestBranch = branch;
             }
         }
 
         if (nearestBranch != null) {
-            float distanceKm = minimumDistanceInMeters / 1000f;
+
+            float distanceKm =
+                    minimumDistanceInMeters / 1000f;
+
             textNearestBranch.setText(
                     String.format(
                             Locale.getDefault(),
@@ -282,15 +418,45 @@ public class AppointmentActivity extends AppCompatActivity {
     public void onRequestPermissionsResult(
             int requestCode,
             @NonNull String[] permissions,
-            @NonNull int[] grantResults
-    ) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+            @NonNull int[] grantResults) {
 
-        if (requestCode == LOCATION_PERMISSION_REQUEST_CODE) {
-            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+        super.onRequestPermissionsResult(
+                requestCode,
+                permissions,
+                grantResults
+        );
+
+        if (requestCode ==
+                LOCATION_PERMISSION_REQUEST_CODE) {
+
+            boolean locationPermissionGranted = false;
+
+            for (int result : grantResults) {
+
+                if (result ==
+                        PackageManager.PERMISSION_GRANTED) {
+
+                    locationPermissionGranted = true;
+                    break;
+                }
+            }
+
+            if (locationPermissionGranted) {
+
                 findNearestBranch();
+
             } else {
-                textNearestBranch.setText("Nearest Branch: Permission denied");
+
+                textNearestBranch.setText(
+                        "Nearest Branch: Location permission denied"
+                );
+
+                Toast.makeText(
+                        this,
+                        "Location permission is required "
+                                + "to find the nearest branch.",
+                        Toast.LENGTH_LONG
+                ).show();
             }
         }
     }

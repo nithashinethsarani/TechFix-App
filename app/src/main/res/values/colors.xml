@@ -8,4 +8,10 @@
     <color name="text_secondary">#8A9BB5</color>
     <color name="accent_green">#4CAF50</color>
     <color name="accent_red">#E53935</color>
+    <color name="bg_dark">#0D1B3E</color>
+    <color name="text_white">#FFFFFF</color>
+    <color name="text_secondary">#94A3B8</color>
+    <color name="card_bg">#172A58</color>
+    <color name="status_green">#22C55E</color>
+    <color name="status_red">#EF4444</color>
 </resources>

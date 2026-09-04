@@ -11,6 +11,7 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.techfix_app.activities.MainActivity;
+import com.example.techfix_app.firebase.FirestoreManager;
 import com.example.techfix_app.R;
 import com.google.firebase.auth.FirebaseAuth;
 
@@ -91,7 +92,6 @@ public class LoginActivity extends AppCompatActivity {
 
                         startActivity(intent);
 
-                        // Prevent going back to LoginActivity
                         finish();
 
                     } else {

@@ -5,272 +5,167 @@ import android.os.Bundle;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
-
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.techfix_app.R;
 import com.example.techfix_app.activities.payment.PaymentActivity;
-import com.example.techfix_app.database.AppDatabase;
-import com.example.techfix_app.database.entities.RepairEntity;
+import com.example.techfix_app.adapters.SparePartAdapter;
 import com.google.firebase.firestore.FirebaseFirestore;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class RepairStatusActivity extends AppCompatActivity {
+    public static boolean isPaymentCompletedLocally = false; // Local Flag for instant status update
 
-    private TextView tvDeviceName;
-    private TextView tvStatus;
-    private TextView tvTechnician;
-    private TextView tvSpareParts;
-    private TextView tvTotalAmount;
-
+    private TextView tvDeviceName, tvStatus, tvTechnician, tvTotalAmount;
+    private RecyclerView rvSpareParts;
     private Button btnProceedToPay;
-
     private FirebaseFirestore db;
-
-    // Temporary test repair ID
-    // Later this should come from the logged-in customer's repair.
     private String currentRepairId = "REPAIR_1001";
+    private boolean isAllPartsAvailable = true;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_repair_status);
 
-        initializeViews();
-
-        btnProceedToPay.setOnClickListener(v -> openPayment());
-
-        initializeFirebase();
-    }
-
-    private void initializeViews() {
-
         tvDeviceName = findViewById(R.id.tvDeviceName);
         tvStatus = findViewById(R.id.tvStatus);
         tvTechnician = findViewById(R.id.tvTechnician);
-        tvSpareParts = findViewById(R.id.tvSpareParts);
         tvTotalAmount = findViewById(R.id.tvTotalAmount);
-
+        rvSpareParts = findViewById(R.id.rvSpareParts);
         btnProceedToPay = findViewById(R.id.btnProceedToPay);
+
+        if (rvSpareParts != null) {
+            rvSpareParts.setLayoutManager(new LinearLayoutManager(this));
+        }
+
+        btnProceedToPay.setOnClickListener(v -> {
+            if (!isAllPartsAvailable) {
+                Toast.makeText(this, "Cannot proceed! Required spare part is Out of Stock.", Toast.LENGTH_LONG).show();
+                return;
+            }
+            openPaymentScreen("All Required Parts");
+        });
     }
 
-    private void initializeFirebase() {
-
+    @Override
+    protected void onResume() {
+        super.onResume();
         try {
-
             db = FirebaseFirestore.getInstance();
-
-            fetchRepairDetails(currentRepairId);
-
+            fetchRepairDetails();
         } catch (Exception e) {
-
-            Toast.makeText(
-                    this,
-                    "Firebase not configured yet - Loading offline UI",
-                    Toast.LENGTH_SHORT
-            ).show();
-
-            loadSampleData();
+            loadDefaultData();
         }
     }
 
-    private void openPayment() {
+    private void fetchRepairDetails() {
+        db.collection("repairs").document(currentRepairId).get()
+                .addOnSuccessListener(doc -> {
+                    if (doc.exists()) {
+                        String device = doc.getString("deviceName");
+                        String status = doc.getString("status");
+                        String tech = doc.getString("technicianName");
+                        Double amount = doc.getDouble("totalAmount");
+                        String payStatus = doc.getString("paymentStatus");
 
-        Intent intent = new Intent(
-                RepairStatusActivity.this,
-                PaymentActivity.class
-        );
+                        List<SparePartAdapter.SpareItem> partsList = new ArrayList<>();
+                        List<java.util.Map<String, Object>> partsData = (List<java.util.Map<String, Object>>) doc.get("spareParts");
 
-        intent.putExtra(
-                "REPAIR_ID",
-                currentRepairId
-        );
+                        if (partsData != null && !partsData.isEmpty()) {
+                            for (java.util.Map<String, Object> item : partsData) {
+                                String name = (String) item.get("name");
+                                Boolean available = (Boolean) item.get("isAvailable");
+                                partsList.add(new SparePartAdapter.SpareItem(
+                                        name != null ? name : "Spare Part",
+                                        available != null ? available : true
+                                ));
+                            }
+                        } else {
+                            partsList.add(new SparePartAdapter.SpareItem("Display Cable", true));
+                            partsList.add(new SparePartAdapter.SpareItem("RAM Module 8GB", true));
+                        }
 
-        startActivity(intent);
-    }
+                        boolean isPaid = "Paid".equalsIgnoreCase(payStatus) || isPaymentCompletedLocally;
+                        String displayStatus = isPaid ? "Ready for Delivery (Paid)" : (status != null ? status : "In Progress");
 
-    private void fetchRepairDetails(String repairId) {
-
-        db.collection("repairs")
-                .document(repairId)
-                .get()
-
-                .addOnSuccessListener(documentSnapshot -> {
-
-                    if (documentSnapshot.exists()) {
-
-                        String deviceName =
-                                documentSnapshot.getString("deviceName");
-
-                        String status =
-                                documentSnapshot.getString("status");
-
-                        String technicianName =
-                                documentSnapshot.getString("technicianName");
-
-                        String spareParts =
-                                documentSnapshot.getString("sparePartsDetails");
-
-                        Double amount =
-                                documentSnapshot.getDouble("totalAmount");
-
-                        displayRepairDetails(
-                                deviceName,
-                                status,
-                                technicianName,
-                                spareParts,
-                                amount
+                        setUIData(
+                                device != null ? device : "Sample Laptop",
+                                displayStatus,
+                                tech != null ? tech : "Kamal Perera",
+                                partsList,
+                                amount != null ? amount : 12500.00,
+                                isPaid
                         );
-
-                        saveRepairToLocalDatabase(
-                                repairId,
-                                status,
-                                amount
-                        );
-
                     } else {
-
-                        Toast.makeText(
-                                this,
-                                "Repair details not found!",
-                                Toast.LENGTH_SHORT
-                        ).show();
+                        loadDefaultData();
                     }
                 })
-
-                .addOnFailureListener(e -> {
-
-                    loadRepairFromLocalDatabase(repairId);
-                });
+                .addOnFailureListener(e -> loadDefaultData());
     }
 
-    private void displayRepairDetails(
-            String deviceName,
-            String status,
-            String technicianName,
-            String spareParts,
-            Double amount
-    ) {
+    private void loadDefaultData() {
+        List<SparePartAdapter.SpareItem> defaultParts = new ArrayList<>();
+        defaultParts.add(new SparePartAdapter.SpareItem("Display Cable", true));
+        defaultParts.add(new SparePartAdapter.SpareItem("RAM Module 8GB", true));
 
-        tvDeviceName.setText(
-                "Device: "
-                        + getSafeValue(deviceName)
-        );
-
-        tvStatus.setText(
-                "Status: "
-                        + getSafeValue(status)
-        );
-
-        tvTechnician.setText(
-                "Technician: "
-                        + getSafeValue(technicianName)
-        );
-
-        tvSpareParts.setText(
-                "Spare Parts: "
-                        + getSafeValue(spareParts)
-        );
-
-        tvTotalAmount.setText(
-                "Total: Rs. "
-                        + (amount != null ? amount : 0.0)
-        );
+        String status = isPaymentCompletedLocally ? "Ready for Delivery (Paid)" : "In Progress";
+        setUIData("Sample Laptop", status, "Kamal Perera", defaultParts, 12500.00, isPaymentCompletedLocally);
     }
 
-    private void saveRepairToLocalDatabase(
-            String repairId,
-            String status,
-            Double amount
-    ) {
+    private void setUIData(String device, String status, String tech, List<SparePartAdapter.SpareItem> partsList, double amount, boolean isPaid) {
+        if (tvDeviceName != null) tvDeviceName.setText("Device: " + device);
+        if (tvStatus != null) {
+            tvStatus.setText("Status: " + status);
+            if (isPaid) {
+                tvStatus.setTextColor(0xFF008800); // Green Color for Paid Status
+            }
+        }
+        if (tvTechnician != null) tvTechnician.setText("Technician: " + tech);
+        if (tvTotalAmount != null) tvTotalAmount.setText(String.format("Total: Rs. %,.2f", amount));
 
-        AppDatabase localDatabase =
-                AppDatabase.getInstance(this);
+        this.isAllPartsAvailable = true;
+        for (SparePartAdapter.SpareItem item : partsList) {
+            if (!item.isAvailable) {
+                this.isAllPartsAvailable = false;
+                break;
+            }
+        }
 
-        RepairEntity localData =
-                new RepairEntity(
-                        repairId,
-                        status != null
-                                ? status
-                                : "Pending",
-                        amount != null
-                                ? amount
-                                : 0.0
-                );
+        if (rvSpareParts != null) {
+            SparePartAdapter adapter = new SparePartAdapter(partsList, selectedItem -> {
+                if (isPaid) {
+                    Toast.makeText(this, "Payment already completed for this repair!", Toast.LENGTH_SHORT).show();
+                } else if (selectedItem.isAvailable) {
+                    openPaymentScreen(selectedItem.name);
+                } else {
+                    Toast.makeText(this, selectedItem.name + " is Out of Stock!", Toast.LENGTH_SHORT).show();
+                }
+            });
+            rvSpareParts.setAdapter(adapter);
+        }
 
-        localDatabase
-                .repairDao()
-                .saveRepair(localData);
-    }
-
-    private void loadRepairFromLocalDatabase(
-            String repairId
-    ) {
-
-        AppDatabase localDatabase =
-                AppDatabase.getInstance(this);
-
-        RepairEntity localData =
-                localDatabase
-                        .repairDao()
-                        .getLocalRepair(repairId);
-
-        if (localData != null) {
-
-            tvStatus.setText(
-                    "Status (Offline): "
-                            + localData.status
-            );
-
-            tvTotalAmount.setText(
-                    "Total (Offline): Rs. "
-                            + localData.totalAmount
-            );
-
-            Toast.makeText(
-                    this,
-                    "Loaded from Offline Local Cache",
-                    Toast.LENGTH_SHORT
-            ).show();
-
-        } else {
-
-            Toast.makeText(
-                    this,
-                    "No offline repair data available",
-                    Toast.LENGTH_SHORT
-            ).show();
+        if (btnProceedToPay != null) {
+            if (isPaid) {
+                btnProceedToPay.setEnabled(false);
+                btnProceedToPay.setText("Payment Completed");
+                btnProceedToPay.setAlpha(0.5f);
+            } else {
+                btnProceedToPay.setEnabled(isAllPartsAvailable);
+                btnProceedToPay.setText("Proceed to Payment");
+                btnProceedToPay.setAlpha(isAllPartsAvailable ? 1.0f : 0.5f);
+            }
         }
     }
 
-    private void loadSampleData() {
-
-        tvDeviceName.setText(
-                "Device: Sample Laptop"
-        );
-
-        tvStatus.setText(
-                "Status: In Progress"
-        );
-
-        tvTechnician.setText(
-                "Technician: Kamal Perera"
-        );
-
-        tvSpareParts.setText(
-                "Spare Parts: Display Cable"
-        );
-
-        tvTotalAmount.setText(
-                "Total: Rs. 12,500.00"
-        );
-    }
-
-    private String getSafeValue(String value) {
-
-        if (value == null || value.isEmpty()) {
-            return "Not available";
-        }
-
-        return value;
+    private void openPaymentScreen(String itemDetail) {
+        Intent intent = new Intent(RepairStatusActivity.this, PaymentActivity.class);
+        intent.putExtra("REPAIR_ID", currentRepairId);
+        intent.putExtra("SELECTED_ITEM", itemDetail);
+        startActivity(intent);
     }
 }

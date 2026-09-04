@@ -18,6 +18,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.techfix_app.R;
+import com.example.techfix_app.firebase.FirestoreManager;
 import com.example.techfix_app.models.Branch;
 import com.example.techfix_app.utils.LocationUtils;
 import com.google.android.gms.location.FusedLocationProviderClient;
@@ -35,6 +36,8 @@ public class BranchActivity extends AppCompatActivity {
     private RecyclerView recyclerAllBranches;
     private Branch selectedBranch;
     private List<Branch> branchList;
+    private BranchListAdapter adapter;
+    private FirestoreManager firestoreManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,23 +49,42 @@ public class BranchActivity extends AppCompatActivity {
         Button btnConfirmBranch = findViewById(R.id.btnConfirmBranch);
 
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
+        firestoreManager = new FirestoreManager();
 
-        // TODO: Replace loadDummyBranches() with Member 1's FirestoreManager call
-        branchList = loadDummyBranches();
+        branchList = new ArrayList<>();
+        adapter = new BranchListAdapter(branchList);
 
-        // Show all branches in the list at the top
         recyclerAllBranches.setLayoutManager(new LinearLayoutManager(this));
-        recyclerAllBranches.setAdapter(new BranchListAdapter(branchList));
+        recyclerAllBranches.setAdapter(adapter);
 
-        checkLocationPermissionAndFetch();
+        // Load branches
+        loadBranchesFromFirestore();
 
         btnConfirmBranch.setOnClickListener(v -> {
             if (selectedBranch != null) {
-                // TODO: pass selectedBranch.getBranchId() back to AppointmentActivity
                 Toast.makeText(this, "Branch confirmed: " + selectedBranch.getName(), Toast.LENGTH_SHORT).show();
                 finish();
             } else {
                 Toast.makeText(this, "Still detecting location...", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void loadBranchesFromFirestore() {
+        firestoreManager.getAllBranches(new FirestoreManager.OnBranchesLoadedListener() {
+            @Override
+            public void onSuccess(List<Branch> branches) {
+                branchList.clear();
+                branchList.addAll(branches);
+                adapter.notifyDataSetChanged();
+
+                // Find nearest branch
+                checkLocationPermissionAndFetch();
+            }
+
+            @Override
+            public void onFailure(Exception e) {
+                Toast.makeText(BranchActivity.this, "Failed to load branches: " + e.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -97,7 +119,7 @@ public class BranchActivity extends AppCompatActivity {
         }
 
         fusedLocationClient.getLastLocation().addOnSuccessListener(location -> {
-            if (location != null) {
+            if (location != null && !branchList.isEmpty()) {
                 double userLat = location.getLatitude();
                 double userLng = location.getLongitude();
 
@@ -106,21 +128,14 @@ public class BranchActivity extends AppCompatActivity {
                 if (selectedBranch != null) {
                     tvNearestBranch.setText(selectedBranch.getName());
                 }
+            } else if (branchList.isEmpty()) {
+                tvNearestBranch.setText("No branches available");
             } else {
                 Toast.makeText(this, "Unable to get current location", Toast.LENGTH_SHORT).show();
             }
         });
     }
 
-    // Temporary dummy branches - remove once Firestore data is connected
-    private List<Branch> loadDummyBranches() {
-        List<Branch> list = new ArrayList<>();
-        list.add(new Branch("branch_colombo", "TechFix Colombo", 6.9271, 79.8612));
-        list.add(new Branch("branch_galle", "TechFix Galle", 6.0535, 80.2210));
-        return list;
-    }
-
-    // Simple inline adapter to show all branches in a list
     private static class BranchListAdapter extends RecyclerView.Adapter<BranchListAdapter.BranchViewHolder> {
         private final List<Branch> branches;
 
