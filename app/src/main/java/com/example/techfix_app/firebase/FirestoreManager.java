@@ -8,6 +8,8 @@ import com.example.techfix_app.models.Service;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -20,9 +22,11 @@ import java.util.Map;
 public class FirestoreManager {
 
     private final FirebaseFirestore firestore;
+    private final FirebaseAuth auth;
 
     public FirestoreManager() {
         firestore = FirebaseFirestore.getInstance();
+        auth = FirebaseAuth.getInstance();
     }
 
 
@@ -58,10 +62,39 @@ public class FirestoreManager {
                 .addOnFailureListener(listener::onFailure);
     }
 
+
+
     // Callback interface for user loading
     public interface OnUserLoadedListener {
         void onSuccess(User user);
         void onFailure(Exception e);
+    }
+
+    public interface OnRoleLoadedListener {
+        void onSuccess(String role);
+        void onFailure(Exception e);
+    }
+    public void getCurrentUserRole(OnRoleLoadedListener listener) {
+        FirebaseUser currentUser = auth.getCurrentUser();
+
+        if (currentUser == null) {
+            listener.onFailure(new Exception("User not logged in"));
+            return;
+        }
+
+        String userId = currentUser.getUid();
+
+        firestore.collection("users").document(userId)
+                .get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (documentSnapshot.exists()) {
+                        String role = documentSnapshot.getString("role");
+                        listener.onSuccess(role != null ? role : "Customer");
+                    } else {
+                        listener.onSuccess("Customer");
+                    }
+                })
+                .addOnFailureListener(listener::onFailure);
     }
 
 
@@ -150,7 +183,8 @@ public class FirestoreManager {
                 .get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
 
-                    List<Service> serviceList = new ArrayList<>();
+                    List<Service> serviceList =
+                            new ArrayList<>();
 
                     for (DocumentSnapshot document :
                             queryDocumentSnapshots.getDocuments()) {
@@ -160,9 +194,9 @@ public class FirestoreManager {
 
                         if (service != null) {
 
-                            // Make sure the Firestore document ID
-                            // is available as the service ID
-                            service.setId(document.getId());
+                            service.setId(
+                                    document.getId()
+                            );
 
                             serviceList.add(service);
                         }
@@ -171,6 +205,28 @@ public class FirestoreManager {
                     listener.onSuccess(serviceList);
                 })
                 .addOnFailureListener(listener::onFailure);
+    }
+
+    public Task<Void> addService(Service service) {
+
+        DocumentReference document =
+                firestore.collection("services").document();
+
+        service.setId(document.getId());
+
+        return document.set(service);
+    }
+
+    public Task<Void> setService(
+            String serviceId,
+            Service service) {
+
+        service.setId(serviceId);
+
+        return firestore
+                .collection("services")
+                .document(serviceId)
+                .set(service);
     }
 
 

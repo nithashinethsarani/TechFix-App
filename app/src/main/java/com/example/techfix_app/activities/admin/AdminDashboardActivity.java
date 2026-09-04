@@ -49,9 +49,8 @@ public class AdminDashboardActivity extends AppCompatActivity {
         llRepairImages.setOnClickListener(v ->
                 startActivity(new Intent(AdminDashboardActivity.this, UploadRepairImageActivity.class)));
 
-        // Wena member ge scope - placeholder witharak
         llServiceManagement.setOnClickListener(v ->
-                Toast.makeText(this, "Service Management - coming soon", Toast.LENGTH_SHORT).show());
+                startActivity(new Intent(AdminDashboardActivity.this, ServiceManagementActivity.class)));
     }
 
     @Override
