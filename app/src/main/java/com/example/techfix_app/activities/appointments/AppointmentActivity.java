@@ -10,6 +10,8 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.ArrayAdapter;
+import android.widget.Spinner;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -39,6 +41,8 @@ public class AppointmentActivity extends AppCompatActivity {
     private EditText editPhoneNumber;
     private EditText editPreferredDate;
 
+    private Spinner spinnerTimeSlot;
+
     private Button btnSubmitBooking;
 
     private String serviceName;
@@ -58,6 +62,7 @@ public class AppointmentActivity extends AppCompatActivity {
         getSelectedServiceDetails();
         setupLocation();
         setupBranches();
+        setupTimeSlotSpinner();
         setupSubmitButton();
         setupDatePicker();
 
@@ -71,6 +76,7 @@ public class AppointmentActivity extends AppCompatActivity {
         editCustomerName = findViewById(R.id.editCustomerName);
         editPhoneNumber = findViewById(R.id.editPhoneNumber);
         editPreferredDate = findViewById(R.id.editPreferredDate);
+        spinnerTimeSlot = findViewById(R.id.spinnerTimeSlot);
 
         btnSubmitBooking = findViewById(R.id.btnSubmitBooking);
     }
@@ -107,6 +113,27 @@ public class AppointmentActivity extends AppCompatActivity {
         branchList = new ArrayList<>();
         branchList.add(new Branch("1", "Colombo Branch", 6.9271, 79.8612));
         branchList.add(new Branch("2", "Galle Branch", 6.0535, 80.2210));
+    }
+
+    // TODO: Once Member 3's technician-availability logic is ready,
+// replace this dummy list with real available time slots for the selected branch/date
+    private void setupTimeSlotSpinner() {
+        String[] timeSlots = {
+                "9:00 AM - 10:00 AM",
+                "10:00 AM - 11:00 AM",
+                "11:00 AM - 12:00 PM",
+                "1:00 PM - 2:00 PM",
+                "2:00 PM - 3:00 PM",
+                "3:00 PM - 4:00 PM"
+        };
+
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(
+                this,
+                android.R.layout.simple_spinner_item,
+                timeSlots
+        );
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinnerTimeSlot.setAdapter(adapter);
     }
 
     private void setupSubmitButton() {
@@ -149,6 +176,9 @@ public class AppointmentActivity extends AppCompatActivity {
         String name = editCustomerName.getText().toString().trim();
         String phone = editPhoneNumber.getText().toString().trim();
         String date = editPreferredDate.getText().toString().trim();
+        String timeSlot = spinnerTimeSlot.getSelectedItem() != null
+                ? spinnerTimeSlot.getSelectedItem().toString()
+                : "";
 
         if (name.isEmpty() || phone.isEmpty() || date.isEmpty()) {
             Toast.makeText(this, "Please fill all fields", Toast.LENGTH_SHORT).show();
@@ -157,7 +187,7 @@ public class AppointmentActivity extends AppCompatActivity {
 
         Toast.makeText(
                 this,
-                "Appointment booked for " + serviceName + " on " + date,
+                "Appointment booked for " + serviceName + " on " + date + " at " + timeSlot,
                 Toast.LENGTH_LONG
         ).show();
 
