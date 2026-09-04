@@ -105,7 +105,7 @@ public class SignupActivity extends AppCompatActivity {
                 // Create our User model
                 User user = new User(uid, name, email,role);
 
-                // Save additional customer information to Firestore
+                // Save other customer information to Firestore
                 firestoreManager.saveUser(
                         uid,
                         user,

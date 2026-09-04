@@ -9,13 +9,10 @@ public class User {
     private String address;
     private String role;
 
-    // Empty constructor required by Firebase Firestore
     public User() {
     }
 
-    // Existing constructor
-    // We keep this so your existing SignupActivity code
-    // does not break.
+    //constructor
     public User(String userId, String name, String email,String role) {
         this.userId = userId;
         this.name = name;
@@ -23,7 +20,7 @@ public class User {
         this.role = role;
     }
 
-    // New constructor for the complete profile
+    //constructor for the complete profile
     public User(String userId, String name, String email,
                 String phone, String address, String role) {
 
@@ -58,9 +55,6 @@ public class User {
     }
     public String getRole() {return role;}
 
-    // Setters
-    // Firestore can use these when converting
-    // a Firestore document into a User object.
 
     public void setUserId(String userId) {
         this.userId = userId;

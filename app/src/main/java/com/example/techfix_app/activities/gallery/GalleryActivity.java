@@ -9,7 +9,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.techfix_app.R;
 import com.example.techfix_app.adapters.GalleryAdapter;
-import com.example.techfix_app.database.RepairImageDAO;
+import com.example.techfix_app.database.RepairImageDatabaseHelper;
 import com.example.techfix_app.models.RepairImage;
 
 import java.util.ArrayList;
@@ -22,7 +22,7 @@ public class GalleryActivity extends AppCompatActivity {
     private List<RepairImage> imageList = new ArrayList<>();
     private List<RepairImage> fullList = new ArrayList<>();
     private Spinner spinnerFilterCategory;
-    private RepairImageDAO repairImageDAO;
+    private RepairImageDatabaseHelper dbHelper;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -31,7 +31,7 @@ public class GalleryActivity extends AppCompatActivity {
 
         recyclerView = findViewById(R.id.recyclerViewGallery);
         spinnerFilterCategory = findViewById(R.id.spinnerFilterCategory);
-        repairImageDAO = new RepairImageDAO(this);
+        dbHelper = new RepairImageDatabaseHelper(this);
 
         recyclerView.setLayoutManager(new GridLayoutManager(this, 2));
         adapter = new GalleryAdapter(imageList);
@@ -61,7 +61,7 @@ public class GalleryActivity extends AppCompatActivity {
     }
 
     private void loadImages() {
-        List<RepairImage> list = repairImageDAO.getAllImages();
+        List<RepairImage> list = dbHelper.getAllImages();
         fullList.clear();
         fullList.addAll(list);
         imageList.clear();
@@ -71,11 +71,11 @@ public class GalleryActivity extends AppCompatActivity {
 
     private void filterImages(String category) {
         imageList.clear();
-        if (category.equals("All")) {
+        if ("All".equals(category)) {
             imageList.addAll(fullList);
         } else {
             for (RepairImage img : fullList) {
-                if (img.getDeviceCategory().equals(category)) {
+                if (img.getDeviceCategory() != null && img.getDeviceCategory().equalsIgnoreCase(category)) {
                     imageList.add(img);
                 }
             }

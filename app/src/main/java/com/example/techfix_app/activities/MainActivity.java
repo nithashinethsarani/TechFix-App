@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.os.Bundle;
 
 import android.widget.Button;
+import android.widget.Toast;
 
 
 
@@ -16,6 +17,7 @@ import com.example.techfix_app.R;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.example.techfix_app.activities.admin.AdminDashboardActivity;
 
 
 import com.example.techfix_app.activities.appointments.AppointmentActivity;
@@ -31,6 +33,8 @@ import com.example.techfix_app.activities.repairs.RepairHistoryActivity;
 import com.example.techfix_app.activities.repairs.RepairStatusActivity;
 
 import com.example.techfix_app.activities.services.ServicesActivity;
+import com.example.techfix_app.firebase.FirestoreManager;
+import com.example.techfix_app.models.User;
 
 
 
@@ -56,7 +60,7 @@ public class MainActivity extends AppCompatActivity {
 
     private Button btnProfile;
 
-
+    private FirestoreManager firestoreManager;
 
     @Override
 
@@ -66,14 +70,11 @@ public class MainActivity extends AppCompatActivity {
 
         setContentView(R.layout.activity_main);
 
-
+        firestoreManager = new FirestoreManager();
 
         initializeViews();
 
         setupClickListeners();
-
-
-
     }
 
 
@@ -97,17 +98,34 @@ public class MainActivity extends AppCompatActivity {
             startActivity(intent);
 
             finish();
-
+        } else {
+            // Check user role from Firestore
+            checkUserRole(currentUser.getUid());
         }
 
     }
 
+    private void checkUserRole(String uid) {
+        firestoreManager.getUser(uid, new FirestoreManager.OnUserLoadedListener() {
+            @Override
+            public void onSuccess(User user) {
+                if (user != null && user.getRole() != null) {
+                    if (user.getRole().equalsIgnoreCase("admin")) {
+                        Intent intent = new Intent(MainActivity.this, AdminDashboardActivity.class);
+                        startActivity(intent);
+                        finish();
+                    }
+                }
+            }
 
+            @Override
+            public void onFailure(Exception e) {
+                Toast.makeText(MainActivity.this, "Error fetching user role", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
 
     private void initializeViews() {
-
-
-
         btnServices = findViewById(R.id.btnServices);
 
         btnAppointments = findViewById(R.id.btnAppointments);
@@ -126,10 +144,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void setupClickListeners() {
 
-
-
-// View Services
-
+        //Services
         btnServices.setOnClickListener(v -> {
 
             Intent intent = new Intent(
@@ -144,12 +159,7 @@ public class MainActivity extends AppCompatActivity {
 
         });
 
-
-
-// Book Appointment
-
-// Customer should select a service first
-
+        // Book Appointment
         btnAppointments.setOnClickListener(v -> {
 
             Intent intent = new Intent(
