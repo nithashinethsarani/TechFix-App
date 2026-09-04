@@ -18,8 +18,8 @@ import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
 
 import com.example.techfix_app.R;
-import com.example.techfix_app.database.BranchDAO;
-import com.example.techfix_app.database.RepairImageDAO;
+import com.example.techfix_app.database.RepairImageDatabaseHelper;
+import com.example.techfix_app.firebase.FirestoreManager;
 import com.example.techfix_app.models.Branch;
 import com.example.techfix_app.models.RepairImage;
 
@@ -41,8 +41,8 @@ public class UploadRepairImageActivity extends AppCompatActivity {
     private Spinner spinnerBranch, spinnerCategory;
     private Button btnCapture, btnUpload;
 
-    private RepairImageDAO repairImageDAO;
-    private BranchDAO branchDAO;
+    private RepairImageDatabaseHelper dbHelper;
+    private FirestoreManager firestoreManager;
 
     private Uri photoUri;
     private String currentPhotoPath;
@@ -60,11 +60,11 @@ public class UploadRepairImageActivity extends AppCompatActivity {
         btnCapture = findViewById(R.id.btnCapture);
         btnUpload = findViewById(R.id.btnUpload);
 
-        repairImageDAO = new RepairImageDAO(this);
-        branchDAO = new BranchDAO(this);
+        dbHelper = new RepairImageDatabaseHelper(this);
+        firestoreManager = new FirestoreManager();
 
         setupCategorySpinner();
-        loadBranchesToSpinner();
+        loadBranchesFromFirestore();
 
         btnCapture.setOnClickListener(v -> checkCameraPermissionAndOpen());
         btnUpload.setOnClickListener(v -> saveImage());
@@ -78,17 +78,30 @@ public class UploadRepairImageActivity extends AppCompatActivity {
         spinnerCategory.setAdapter(adapter);
     }
 
-    private void loadBranchesToSpinner() {
-        branchList.clear();
-        branchList.addAll(branchDAO.getAllBranches());
+    private void loadBranchesFromFirestore() {
+        firestoreManager.getAllBranches(new FirestoreManager.OnBranchesLoadedListener() {
+            @Override
+            public void onSuccess(List<Branch> branches) {
+                branchList.clear();
+                branchList.addAll(branches);
 
-        List<String> names = new ArrayList<>();
-        for (Branch b : branchList) names.add(b.getName());
+                List<String> names = new ArrayList<>();
+                for (Branch b : branchList) {
+                    names.add(b.getName());
+                }
 
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(this,
-                android.R.layout.simple_spinner_item, names);
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        spinnerBranch.setAdapter(adapter);
+                ArrayAdapter<String> adapter = new ArrayAdapter<>(UploadRepairImageActivity.this,
+                        android.R.layout.simple_spinner_item, names);
+                adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                spinnerBranch.setAdapter(adapter);
+            }
+
+            @Override
+            public void onFailure(Exception e) {
+                Toast.makeText(UploadRepairImageActivity.this,
+                        "Failed to load branches: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     private void checkCameraPermissionAndOpen() {
@@ -115,18 +128,31 @@ public class UploadRepairImageActivity extends AppCompatActivity {
 
     private void openCamera() {
         Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-        if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
-            File photoFile = null;
+
+        File photoFile = null;
+        try {
+            photoFile = createImageFile();
+        } catch (IOException e) {
+            Toast.makeText(this, "Error creating file: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        if (photoFile != null) {
+            photoUri = FileProvider.getUriForFile(
+                    this,
+                    getApplicationContext().getPackageName() + ".fileprovider",
+                    photoFile
+            );
+
+            takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoUri);
+
+            // Grant URI permissions for security on newer Android versions
+            takePictureIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+
             try {
-                photoFile = createImageFile();
-            } catch (IOException e) {
-                Toast.makeText(this, "Error creating file", Toast.LENGTH_SHORT).show();
-            }
-            if (photoFile != null) {
-                photoUri = FileProvider.getUriForFile(this,
-                        getApplicationContext().getPackageName() + ".fileprovider", photoFile);
-                takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoUri);
                 startActivityForResult(takePictureIntent, CAMERA_REQUEST_CODE);
+            } catch (Exception e) {
+                Toast.makeText(this, "No camera application found", Toast.LENGTH_SHORT).show();
             }
         }
     }
@@ -159,20 +185,30 @@ public class UploadRepairImageActivity extends AppCompatActivity {
         }
 
         String caption = etCaption.getText().toString().trim();
-        String category = spinnerCategory.getSelectedItem().toString();
+        String deviceCategory = spinnerCategory.getSelectedItem().toString();
         Branch selectedBranch = branchList.get(spinnerBranch.getSelectedItemPosition());
 
+        int branchId = 0;
+        try {
+            // Parses numerical branchId if Branch model stores branchId as String
+            branchId = Integer.parseInt(selectedBranch.getBranchId());
+        } catch (NumberFormatException e) {
+            // Uses position + 1 if branchId string is non-numeric
+            branchId = spinnerBranch.getSelectedItemPosition() + 1;
+        }
+
+        // Instantiates RepairImage using updated constructor
         RepairImage repairImage = new RepairImage(
-                selectedBranch.getBranchId(),
-                category,
+                branchId,
+                deviceCategory,
                 currentPhotoPath,
                 caption,
                 System.currentTimeMillis()
         );
 
-        long newId = repairImageDAO.addImage(repairImage);
+        long newId = dbHelper.addImage(repairImage);
         if (newId != -1) {
-            Toast.makeText(this, "Image saved successfully", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Image saved", Toast.LENGTH_SHORT).show();
             finish();
         } else {
             Toast.makeText(this, "Failed to save image", Toast.LENGTH_SHORT).show();

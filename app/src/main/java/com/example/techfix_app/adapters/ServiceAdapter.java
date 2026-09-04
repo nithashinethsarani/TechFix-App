@@ -3,6 +3,7 @@ package com.example.techfix_app.adapters;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -44,12 +45,19 @@ public class ServiceAdapter extends RecyclerView.Adapter<ServiceAdapter.ServiceV
         holder.tvDeviceCategory.setText(service.getDeviceCategory());
         holder.tvPrice.setText(String.format("Rs. %.2f", service.getPrice()));
 
-        if (service.isAvailable()) {
-            holder.tvAvailability.setText("Available");
-            holder.tvAvailability.setTextColor(0xFF2E7D32); // green
+        // Set icon based on device category
+        if ("Mobile".equalsIgnoreCase(service.getDeviceCategory())) {
+            holder.ivCategoryIcon.setImageResource(R.drawable.ic_mobile);
         } else {
-            holder.tvAvailability.setText("Unavailable");
-            holder.tvAvailability.setTextColor(0xFFC62828); // red
+            holder.ivCategoryIcon.setImageResource(R.drawable.ic_computer);
+        }
+
+        if (service.isAvailable()) {
+            holder.tvAvailability.setText("● Available");
+            holder.tvAvailability.setTextColor(0xFF4CAF50); // green
+        } else {
+            holder.tvAvailability.setText("● Unavailable");
+            holder.tvAvailability.setTextColor(0xFFE53935); // red
         }
 
         holder.itemView.setOnClickListener(v -> {
@@ -71,10 +79,12 @@ public class ServiceAdapter extends RecyclerView.Adapter<ServiceAdapter.ServiceV
     }
 
     static class ServiceViewHolder extends RecyclerView.ViewHolder {
+        ImageView ivCategoryIcon;
         TextView tvServiceName, tvDeviceCategory, tvPrice, tvAvailability;
 
         public ServiceViewHolder(@NonNull View itemView) {
             super(itemView);
+            ivCategoryIcon = itemView.findViewById(R.id.ivCategoryIcon);
             tvServiceName = itemView.findViewById(R.id.tvServiceName);
             tvDeviceCategory = itemView.findViewById(R.id.tvDeviceCategory);
             tvPrice = itemView.findViewById(R.id.tvPrice);

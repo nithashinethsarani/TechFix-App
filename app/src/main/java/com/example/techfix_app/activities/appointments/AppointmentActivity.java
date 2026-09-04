@@ -10,6 +10,8 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.ArrayAdapter;
+import android.widget.Spinner;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -40,6 +42,8 @@ public class AppointmentActivity extends AppCompatActivity {
     private EditText editPhoneNumber;
     private EditText editPreferredDate;
 
+    private Spinner spinnerTimeSlot;
+
     private Button btnSubmitBooking;
 
     private String serviceName;
@@ -59,11 +63,16 @@ public class AppointmentActivity extends AppCompatActivity {
         getSelectedServiceDetails();
         setupLocation();
 
+        // Initialize branch list
         branchList = new ArrayList<>();
+
+        // Setup available time slots
+        setupTimeSlotSpinner();
 
         setupSubmitButton();
         setupDatePicker();
 
+        // Load branches from Firestore
         loadBranchesFromFirestore();
     }
 
@@ -74,6 +83,7 @@ public class AppointmentActivity extends AppCompatActivity {
         editCustomerName = findViewById(R.id.editCustomerName);
         editPhoneNumber = findViewById(R.id.editPhoneNumber);
         editPreferredDate = findViewById(R.id.editPreferredDate);
+        spinnerTimeSlot = findViewById(R.id.spinnerTimeSlot);
 
         btnSubmitBooking = findViewById(R.id.btnSubmitBooking);
     }
@@ -106,6 +116,31 @@ public class AppointmentActivity extends AppCompatActivity {
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
     }
 
+    // Setup available time slots
+    // TODO: Replace with real technician availability when Member 3 logic is ready
+    private void setupTimeSlotSpinner() {
+        String[] timeSlots = {
+                "9:00 AM - 10:00 AM",
+                "10:00 AM - 11:00 AM",
+                "11:00 AM - 12:00 PM",
+                "1:00 PM - 2:00 PM",
+                "2:00 PM - 3:00 PM",
+                "3:00 PM - 4:00 PM"
+        };
+
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(
+                this,
+                android.R.layout.simple_spinner_item,
+                timeSlots
+        );
+
+        adapter.setDropDownViewResource(
+                android.R.layout.simple_spinner_dropdown_item
+        );
+
+        spinnerTimeSlot.setAdapter(adapter);
+    }
+
     private void setupSubmitButton() {
         btnSubmitBooking.setOnClickListener(v -> submitAppointment());
     }
@@ -115,7 +150,9 @@ public class AppointmentActivity extends AppCompatActivity {
         editPreferredDate.setClickable(true);
 
         editPreferredDate.setOnClickListener(v -> {
+
             Calendar calendar = Calendar.getInstance();
+
             int year = calendar.get(Calendar.YEAR);
             int month = calendar.get(Calendar.MONTH);
             int day = calendar.get(Calendar.DAY_OF_MONTH);
@@ -123,6 +160,7 @@ public class AppointmentActivity extends AppCompatActivity {
             DatePickerDialog datePickerDialog = new DatePickerDialog(
                     this,
                     (view, selectedYear, selectedMonth, selectedDay) -> {
+
                         String formattedDate = String.format(
                                 Locale.getDefault(),
                                 "%02d/%02d/%04d",
@@ -130,31 +168,56 @@ public class AppointmentActivity extends AppCompatActivity {
                                 selectedMonth + 1,
                                 selectedYear
                         );
+
                         editPreferredDate.setText(formattedDate);
                     },
-                    year, month, day
+                    year,
+                    month,
+                    day
             );
 
             // Prevent selecting past dates
-            datePickerDialog.getDatePicker().setMinDate(calendar.getTimeInMillis());
+            datePickerDialog.getDatePicker()
+                    .setMinDate(calendar.getTimeInMillis());
 
             datePickerDialog.show();
         });
     }
 
     private void submitAppointment() {
-        String name = editCustomerName.getText().toString().trim();
-        String phone = editPhoneNumber.getText().toString().trim();
-        String date = editPreferredDate.getText().toString().trim();
+
+        String name = editCustomerName.getText()
+                .toString()
+                .trim();
+
+        String phone = editPhoneNumber.getText()
+                .toString()
+                .trim();
+
+        String date = editPreferredDate.getText()
+                .toString()
+                .trim();
+
+        String timeSlot = spinnerTimeSlot.getSelectedItem() != null
+                ? spinnerTimeSlot.getSelectedItem().toString()
+                : "";
 
         if (name.isEmpty() || phone.isEmpty() || date.isEmpty()) {
-            Toast.makeText(this, "Please fill all fields", Toast.LENGTH_SHORT).show();
+
+            Toast.makeText(
+                    this,
+                    "Please fill all fields",
+                    Toast.LENGTH_SHORT
+            ).show();
+
             return;
         }
 
         Toast.makeText(
                 this,
-                "Appointment booked for " + serviceName + " on " + date,
+                "Appointment booked for " + serviceName
+                        + " on " + date
+                        + " at " + timeSlot,
                 Toast.LENGTH_LONG
         ).show();
 
@@ -165,7 +228,8 @@ public class AppointmentActivity extends AppCompatActivity {
 
         textNearestBranch.setText("Loading branches...");
 
-        FirestoreManager firestoreManager = new FirestoreManager();
+        FirestoreManager firestoreManager =
+                new FirestoreManager();
 
         firestoreManager.getAllBranches(
                 new FirestoreManager.OnBranchesLoadedListener() {
@@ -196,7 +260,8 @@ public class AppointmentActivity extends AppCompatActivity {
 
                         Toast.makeText(
                                 AppointmentActivity.this,
-                                "Failed to load branches: " + e.getMessage(),
+                                "Failed to load branches: "
+                                        + e.getMessage(),
                                 Toast.LENGTH_LONG
                         ).show();
                     }
@@ -251,11 +316,17 @@ public class AppointmentActivity extends AppCompatActivity {
                 ) == PackageManager.PERMISSION_GRANTED;
 
         if (!hasFineLocation && !hasCoarseLocation) {
-            textNearestBranch.setText("Location permission required");
+
+            textNearestBranch.setText(
+                    "Location permission required"
+            );
+
             return;
         }
 
-        textNearestBranch.setText("Getting your location...");
+        textNearestBranch.setText(
+                "Getting your location..."
+        );
 
         CancellationTokenSource cancellationTokenSource =
                 new CancellationTokenSource();
@@ -277,7 +348,8 @@ public class AppointmentActivity extends AppCompatActivity {
 
                 Toast.makeText(
                         AppointmentActivity.this,
-                        "Could not determine your location. Please make sure Location/GPS is turned on.",
+                        "Could not determine your location. "
+                                + "Please make sure Location/GPS is turned on.",
                         Toast.LENGTH_LONG
                 ).show();
             }
@@ -296,12 +368,18 @@ public class AppointmentActivity extends AppCompatActivity {
         });
     }
 
-    private void calculateAndSetNearestBranch(Location userLocation) {
+    private void calculateAndSetNearestBranch(
+            Location userLocation) {
+
         Branch nearestBranch = null;
-        float minimumDistanceInMeters = Float.MAX_VALUE;
+
+        float minimumDistanceInMeters =
+                Float.MAX_VALUE;
 
         for (Branch branch : branchList) {
+
             float[] distanceResult = new float[1];
+
             Location.distanceBetween(
                     userLocation.getLatitude(),
                     userLocation.getLongitude(),
@@ -310,14 +388,21 @@ public class AppointmentActivity extends AppCompatActivity {
                     distanceResult
             );
 
-            if (distanceResult[0] < minimumDistanceInMeters) {
-                minimumDistanceInMeters = distanceResult[0];
+            if (distanceResult[0] <
+                    minimumDistanceInMeters) {
+
+                minimumDistanceInMeters =
+                        distanceResult[0];
+
                 nearestBranch = branch;
             }
         }
 
         if (nearestBranch != null) {
-            float distanceKm = minimumDistanceInMeters / 1000f;
+
+            float distanceKm =
+                    minimumDistanceInMeters / 1000f;
+
             textNearestBranch.setText(
                     String.format(
                             Locale.getDefault(),
@@ -333,21 +418,24 @@ public class AppointmentActivity extends AppCompatActivity {
     public void onRequestPermissionsResult(
             int requestCode,
             @NonNull String[] permissions,
-            @NonNull int[] grantResults
-    ) {
+            @NonNull int[] grantResults) {
+
         super.onRequestPermissionsResult(
                 requestCode,
                 permissions,
                 grantResults
         );
 
-        if (requestCode == LOCATION_PERMISSION_REQUEST_CODE) {
+        if (requestCode ==
+                LOCATION_PERMISSION_REQUEST_CODE) {
 
             boolean locationPermissionGranted = false;
 
             for (int result : grantResults) {
 
-                if (result == PackageManager.PERMISSION_GRANTED) {
+                if (result ==
+                        PackageManager.PERMISSION_GRANTED) {
+
                     locationPermissionGranted = true;
                     break;
                 }
@@ -365,7 +453,8 @@ public class AppointmentActivity extends AppCompatActivity {
 
                 Toast.makeText(
                         this,
-                        "Location permission is required to find the nearest branch.",
+                        "Location permission is required "
+                                + "to find the nearest branch.",
                         Toast.LENGTH_LONG
                 ).show();
             }
