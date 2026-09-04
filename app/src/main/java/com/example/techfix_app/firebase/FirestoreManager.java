@@ -41,6 +41,29 @@ public class FirestoreManager {
                 .addOnCompleteListener(listener);
     }
 
+    // Fetch user profile data by UID
+    public void getUser(String uid, OnUserLoadedListener listener) {
+        firestore
+                .collection("users")
+                .document(uid)
+                .get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (documentSnapshot.exists()) {
+                        User user = documentSnapshot.toObject(User.class);
+                        listener.onSuccess(user);
+                    } else {
+                        listener.onFailure(new Exception("User record not found"));
+                    }
+                })
+                .addOnFailureListener(listener::onFailure);
+    }
+
+    // Callback interface for user loading
+    public interface OnUserLoadedListener {
+        void onSuccess(User user);
+        void onFailure(Exception e);
+    }
+
 
     // BASIC FIRESTORE METHODS
 
