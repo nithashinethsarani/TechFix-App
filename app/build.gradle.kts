@@ -44,7 +44,8 @@ android {
 dependencies {
 
     implementation("org.jetbrains.kotlinx:kotlinx-metadata-jvm:0.9.0")
-
+    implementation ("com.github.bumptech.glide:glide:4.16.0")
+    annotationProcessor ("com.github.bumptech.glide:compiler:4.16.0")
 
     implementation(platform("com.google.firebase:firebase-bom:34.18.0"))
     implementation("com.google.firebase:firebase-analytics")
@@ -52,9 +53,6 @@ dependencies {
     implementation ("com.google.firebase:firebase-firestore")
     implementation("com.google.firebase:firebase-storage")
     implementation("com.google.android.gms:play-services-location:21.2.0")
-
-    val roomVersion = "2.5.2"
-    implementation("com.github.bumptech.glide:glide:4.16.0")
 
     val roomVersion = "2.7.1"
     implementation("androidx.room:room-runtime:$roomVersion")
