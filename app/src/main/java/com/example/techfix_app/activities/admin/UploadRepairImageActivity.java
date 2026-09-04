@@ -128,18 +128,31 @@ public class UploadRepairImageActivity extends AppCompatActivity {
 
     private void openCamera() {
         Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-        if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
-            File photoFile = null;
+
+        File photoFile = null;
+        try {
+            photoFile = createImageFile();
+        } catch (IOException e) {
+            Toast.makeText(this, "Error creating file: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        if (photoFile != null) {
+            photoUri = FileProvider.getUriForFile(
+                    this,
+                    getApplicationContext().getPackageName() + ".fileprovider",
+                    photoFile
+            );
+
+            takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoUri);
+
+            // Grant URI permissions for security on newer Android versions
+            takePictureIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+
             try {
-                photoFile = createImageFile();
-            } catch (IOException e) {
-                Toast.makeText(this, "Error creating file", Toast.LENGTH_SHORT).show();
-            }
-            if (photoFile != null) {
-                photoUri = FileProvider.getUriForFile(this,
-                        getApplicationContext().getPackageName() + ".fileprovider", photoFile);
-                takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoUri);
                 startActivityForResult(takePictureIntent, CAMERA_REQUEST_CODE);
+            } catch (Exception e) {
+                Toast.makeText(this, "No camera application found", Toast.LENGTH_SHORT).show();
             }
         }
     }
@@ -195,10 +208,10 @@ public class UploadRepairImageActivity extends AppCompatActivity {
 
         long newId = dbHelper.addImage(repairImage);
         if (newId != -1) {
-            Toast.makeText(this, "Image saved locally to SQLite", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Image saved", Toast.LENGTH_SHORT).show();
             finish();
         } else {
-            Toast.makeText(this, "Failed to save image to SQLite", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Failed to save image", Toast.LENGTH_SHORT).show();
         }
     }
 }
