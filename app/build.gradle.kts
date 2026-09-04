@@ -2,7 +2,11 @@ plugins {
     alias(libs.plugins.android.application)
     id("com.google.gms.google-services")
 }
-
+configurations.all {
+    resolutionStrategy {
+        force("org.jetbrains.kotlinx:kotlinx-metadata-jvm:0.9.0")
+    }
+}
 android {
     namespace = "com.example.techfix_app"
     compileSdk {
@@ -38,18 +42,23 @@ android {
 }
 
 dependencies {
-    //firebase
+
+    implementation("org.jetbrains.kotlinx:kotlinx-metadata-jvm:0.9.0")
+
+
     implementation(platform("com.google.firebase:firebase-bom:34.18.0"))
-    implementation("com.google.firebase:firebase-analytics") //analytics
-    implementation ("com.google.firebase:firebase-auth") //authentication
-    implementation ("com.google.firebase:firebase-firestore") //firestore
+    implementation("com.google.firebase:firebase-analytics")
+    implementation ("com.google.firebase:firebase-auth")
+    implementation ("com.google.firebase:firebase-firestore")
     implementation("com.google.firebase:firebase-storage")
     implementation("com.google.android.gms:play-services-location:21.2.0")
 
     val roomVersion = "2.5.2"
+    implementation("com.github.bumptech.glide:glide:4.16.0")
+
+    val roomVersion = "2.7.1"
     implementation("androidx.room:room-runtime:$roomVersion")
     annotationProcessor("androidx.room:room-compiler:$roomVersion")
-
 
     implementation(libs.activity.ktx)
     implementation(libs.annotation)
