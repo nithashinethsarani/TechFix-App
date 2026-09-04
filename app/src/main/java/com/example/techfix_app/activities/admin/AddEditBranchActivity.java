@@ -24,7 +24,6 @@ public class AddEditBranchActivity extends AppCompatActivity {
 
         etBranchName = findViewById(R.id.etBranchName);
         etAddress = findViewById(R.id.etAddress);
-        etCity = findViewById(R.id.etCity);
         etPhone = findViewById(R.id.etPhone);
         btnSave = findViewById(R.id.btnSave);
 
@@ -43,7 +42,6 @@ public class AddEditBranchActivity extends AppCompatActivity {
         if (branch != null) {
             etBranchName.setText(branch.getName());
             etAddress.setText(branch.getAddress());
-            etCity.setText(branch.getCity());
             etPhone.setText(branch.getPhone());
         }
     }
@@ -62,7 +60,6 @@ public class AddEditBranchActivity extends AppCompatActivity {
         Branch branch = new Branch();
         branch.setName(name);
         branch.setAddress(address);
-        branch.setCity(city);
         branch.setPhone(phone);
 
         if (branchId == -1) {
