@@ -29,7 +29,6 @@ public class ServicesActivity extends AppCompatActivity {
 
     private FirestoreManager firestoreManager;
     private ServiceAdapter adapter;
-    private String userRole = "user";
 
     private final List<Service> fullServiceList = new ArrayList<>();
     private final List<Service> displayedList = new ArrayList<>();
@@ -63,7 +62,9 @@ public class ServicesActivity extends AppCompatActivity {
                                 ServicesActivity.this,
                                 ServiceDetailsActivity.class
                         );
-                        intent.putExtra("serviceId", service.getId());
+
+                        // Duplicate extra removal
+                        intent.putExtra("service_id", service.getId());
                         intent.putExtra("service_name", service.getName());
                         intent.putExtra("device_category", service.getDeviceCategory());
                         intent.putExtra("price", service.getPrice());
@@ -73,10 +74,14 @@ public class ServicesActivity extends AppCompatActivity {
                     }
 
                     @Override
-                    public void onEditClick(Service service) {}
+                    public void onEditClick(Service service) {
+                        // Admin edit functionality goes here
+                    }
 
                     @Override
-                    public void onDeleteClick(Service service) {}
+                    public void onDeleteClick(Service service) {
+                        // Admin delete functionality goes here
+                    }
                 }
         );
 
@@ -97,7 +102,7 @@ public class ServicesActivity extends AppCompatActivity {
             applyFilters();
         });
 
-        // Search
+        // Search listener
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
@@ -121,10 +126,6 @@ public class ServicesActivity extends AppCompatActivity {
         loadServices();
     }
 
-    public void setUserRole(String userRole) {
-        this.userRole = userRole;
-    }
-
     private void fetchUserRole() {
         firestoreManager.getCurrentUserRole(new FirestoreManager.OnRoleLoadedListener() {
             @Override
@@ -140,7 +141,6 @@ public class ServicesActivity extends AppCompatActivity {
     }
 
     private void loadServices() {
-
         progressBar.setVisibility(View.VISIBLE);
         tvNoServices.setVisibility(View.GONE);
 
@@ -149,20 +149,15 @@ public class ServicesActivity extends AppCompatActivity {
 
                     @Override
                     public void onSuccess(List<Service> services) {
-
                         progressBar.setVisibility(View.GONE);
-
                         fullServiceList.clear();
                         fullServiceList.addAll(services);
-
                         applyFilters();
                     }
 
                     @Override
                     public void onFailure(Exception e) {
-
                         progressBar.setVisibility(View.GONE);
-
                         Toast.makeText(
                                 ServicesActivity.this,
                                 "Failed to load services: " + e.getMessage(),
@@ -179,9 +174,9 @@ public class ServicesActivity extends AppCompatActivity {
 
         for (Service s : fullServiceList) {
             boolean matchesCategory = currentCategory.equals("All")
-                    || s.getDeviceCategory().equalsIgnoreCase(currentCategory);
+                    || (s.getDeviceCategory() != null && s.getDeviceCategory().equalsIgnoreCase(currentCategory));
             boolean matchesSearch = currentSearchText.isEmpty()
-                    || s.getName().toLowerCase().contains(currentSearchText.toLowerCase());
+                    || (s.getName() != null && s.getName().toLowerCase().contains(currentSearchText.toLowerCase()));
 
             if (matchesCategory && matchesSearch) {
                 filtered.add(s);
