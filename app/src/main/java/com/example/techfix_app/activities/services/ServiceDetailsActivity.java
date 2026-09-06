@@ -24,26 +24,27 @@ public class ServiceDetailsActivity extends AppCompatActivity {
         TextView tvAvailability = findViewById(R.id.tvAvailability);
         Button btnBookAppointment = findViewById(R.id.btnBookAppointment);
 
-        // Receive service details passed from ServicesActivity
         String serviceId = getIntent().getStringExtra("service_id");
         String serviceName = getIntent().getStringExtra("service_name");
         String deviceCategory = getIntent().getStringExtra("device_category");
         double price = getIntent().getDoubleExtra("price", 0.0);
         String description = getIntent().getStringExtra("description");
-        boolean available = getIntent().getBooleanExtra("available", true);
+        String availability = getIntent().getStringExtra("available");
 
         tvServiceName.setText(serviceName);
         tvDeviceCategory.setText(deviceCategory);
         tvPrice.setText(String.format("Rs. %.2f", price));
         tvDescription.setText(description);
 
-        if (available) {
+        boolean isAvailable = "Available".equalsIgnoreCase(availability);
+
+        if (isAvailable) {
             tvAvailability.setText("Available");
-            tvAvailability.setTextColor(0xFF2E7D32); // green
+            tvAvailability.setTextColor(0xFF2E7D32);
             btnBookAppointment.setEnabled(true);
         } else {
             tvAvailability.setText("Unavailable - Spare parts not in stock");
-            tvAvailability.setTextColor(0xFFC62828); // red
+            tvAvailability.setTextColor(0xFFC62828);
             btnBookAppointment.setEnabled(false);
         }
 
