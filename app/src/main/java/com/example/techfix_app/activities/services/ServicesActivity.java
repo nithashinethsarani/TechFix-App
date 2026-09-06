@@ -69,7 +69,7 @@ public class ServicesActivity extends AppCompatActivity {
                         intent.putExtra("device_category", service.getDeviceCategory());
                         intent.putExtra("price", service.getPrice());
                         intent.putExtra("description", service.getDescription());
-                        intent.putExtra("available", service.getAvailability());
+                        intent.putExtra("available", service.getIsAvailable());
                         startActivity(intent);
                     }
 
