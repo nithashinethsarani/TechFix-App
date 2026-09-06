@@ -2,10 +2,10 @@ package com.example.techfix_app.activities.appointments;
 
 import android.Manifest;
 import android.app.DatePickerDialog;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Bundle;
-import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -13,11 +13,14 @@ import android.widget.Toast;
 import android.widget.ArrayAdapter;
 import android.widget.Spinner;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
+import com.example.techfix_app.activities.branches.BranchActivity;
 import com.example.techfix_app.firebase.FirestoreManager;
 import com.example.techfix_app.R;
 import com.example.techfix_app.models.Branch;
@@ -54,10 +57,24 @@ public class AppointmentActivity extends AppCompatActivity {
 
     private List<Branch> branchList;
 
+    private ActivityResultLauncher<Intent> branchActivityLauncher;
+    private String selectedBranchId;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_appointment);
+
+        branchActivityLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> {
+                    if (result.getResultCode() == RESULT_OK && result.getData() != null) {
+                        selectedBranchId = result.getData().getStringExtra("branch_id");
+                        String branchName = result.getData().getStringExtra("branch_name");
+                        textNearestBranch.setText("Selected Branch: " + branchName);
+                    }
+                }
+        );
 
         initializeViews();
         getSelectedServiceDetails();
@@ -71,6 +88,7 @@ public class AppointmentActivity extends AppCompatActivity {
 
         setupSubmitButton();
         setupDatePicker();
+        setupBranchCardClick();
 
         // Load branches from Firestore
         loadBranchesFromFirestore();
@@ -114,6 +132,14 @@ public class AppointmentActivity extends AppCompatActivity {
 
     private void setupLocation() {
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
+    }
+
+    // Allow the user to manually pick/override the branch from the full list
+    private void setupBranchCardClick() {
+        textNearestBranch.setOnClickListener(v -> {
+            Intent intent = new Intent(AppointmentActivity.this, BranchActivity.class);
+            branchActivityLauncher.launch(intent);
+        });
     }
 
     // Setup available time slots
@@ -213,6 +239,7 @@ public class AppointmentActivity extends AppCompatActivity {
             return;
         }
 
+        // TODO: Save appointment to Firestore including selectedBranchId, timeSlot, serviceName
         Toast.makeText(
                 this,
                 "Appointment booked for " + serviceName
@@ -388,9 +415,7 @@ public class AppointmentActivity extends AppCompatActivity {
                     distanceResult
             );
 
-            if (distanceResult[0] <
-                    minimumDistanceInMeters) {
-
+            if (distanceResult[0] < minimumDistanceInMeters) {
                 minimumDistanceInMeters =
                         distanceResult[0];
 
@@ -402,6 +427,8 @@ public class AppointmentActivity extends AppCompatActivity {
 
             float distanceKm =
                     minimumDistanceInMeters / 1000f;
+
+            selectedBranchId = nearestBranch.getBranchId();
 
             textNearestBranch.setText(
                     String.format(

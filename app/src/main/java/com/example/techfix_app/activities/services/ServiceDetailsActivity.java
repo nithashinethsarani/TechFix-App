@@ -3,6 +3,7 @@ package com.example.techfix_app.activities.services;
 import android.content.Intent;
 import android.os.Bundle;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -23,8 +24,8 @@ public class ServiceDetailsActivity extends AppCompatActivity {
         TextView tvDescription = findViewById(R.id.tvDescription);
         TextView tvAvailability = findViewById(R.id.tvAvailability);
         Button btnBookAppointment = findViewById(R.id.btnBookAppointment);
+        ImageView imgAvailable = findViewById(R.id.imgAvailable);
 
-        // Receive service details passed from ServicesActivity
         String serviceId = getIntent().getStringExtra("service_id");
         String serviceName = getIntent().getStringExtra("service_name");
         String deviceCategory = getIntent().getStringExtra("device_category");
@@ -39,12 +40,14 @@ public class ServiceDetailsActivity extends AppCompatActivity {
 
         if (available) {
             tvAvailability.setText("Available");
-            tvAvailability.setTextColor(0xFF2E7D32); // green
+            tvAvailability.setTextColor(0xFF2E7D32);
             btnBookAppointment.setEnabled(true);
+            imgAvailable.setImageResource(R.drawable.ic_check_circle);
         } else {
-            tvAvailability.setText("Unavailable - Spare parts not in stock");
-            tvAvailability.setTextColor(0xFFC62828); // red
+            tvAvailability.setText("Unavailable");
+            tvAvailability.setTextColor(0xFFC62828);
             btnBookAppointment.setEnabled(false);
+            imgAvailable.setImageResource(R.drawable.ic_error);
         }
 
         btnBookAppointment.setOnClickListener(v -> {
