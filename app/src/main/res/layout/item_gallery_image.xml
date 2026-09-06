@@ -4,6 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_margin="4dp"
+    app:cardBackgroundColor="#FFFFFF"
     app:cardCornerRadius="8dp"
     app:cardElevation="3dp">
 
@@ -24,14 +25,16 @@
             android:layout_height="wrap_content"
             android:layout_margin="6dp"
             android:textStyle="bold"
-            android:textSize="13sp" />
+            android:textSize="13sp"
+            android:textColor="#0D1B3E" />
 
         <TextView
             android:id="@+id/tvCaption"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_margin="6dp"
-            android:textSize="12sp" />
+            android:textSize="12sp"
+            android:textColor="#0D1B3E" />
 
     </LinearLayout>
 </androidx.cardview.widget.CardView>

@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="#0D1B3E">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -14,50 +15,64 @@
             android:layout_width="match_parent"
             android:layout_height="220dp"
             android:layout_marginBottom="12dp"
-            android:background="#EEEEEE"
+            android:background="#FFFFFF"
             android:scaleType="centerCrop" />
 
         <Button
             android:id="@+id/btnCapture"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Capture Photo" />
+            android:text="Capture Photo"
+            android:backgroundTint="#FFFFFF"
+            android:textColor="#0D1B3E" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
-            android:text="Device Category" />
+            android:text="Device Category"
+            android:textColor="#FFFFFF" />
 
         <Spinner
             android:id="@+id/spinnerCategory"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"
+            android:background="#FFFFFF"
+            android:popupBackground="#FFFFFF" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
-            android:text="Branch" />
+            android:text="Branch"
+            android:textColor="#FFFFFF" />
 
         <Spinner
             android:id="@+id/spinnerUploadBranch"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"
+            android:background="#FFFFFF"
+            android:popupBackground="#FFFFFF" />
 
         <EditText
             android:id="@+id/etCaption"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
-            android:hint="Caption (e.g. Screen replacement done)" />
+            android:hint="Caption (e.g. Screen replacement done)"
+            android:background="#FFFFFF"
+            android:textColor="#0D1B3E"
+            android:textColorHint="#666666"
+            android:padding="8dp" />
 
         <Button
             android:id="@+id/btnUpload"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:text="Upload Image" />
+            android:text="Upload Image"
+            android:backgroundTint="#FFFFFF"
+            android:textColor="#0D1B3E" />
 
     </LinearLayout>
 </ScrollView>

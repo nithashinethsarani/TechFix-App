@@ -1,5 +1,6 @@
 package com.example.techfix_app.adapters;
 
+import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -74,6 +75,16 @@ public class TechnicianAdapter
                 technician.getPhone()
         );
 
+        // Availablility
+        if(Boolean.TRUE.equals(technician.getIsAvailable())){
+            holder.tvIsAvailable.setText("Available");
+            holder.tvIsAvailable.setTextColor(Color.GREEN);
+        }
+        else{
+            holder.tvIsAvailable.setText("Not Available");
+            holder.tvIsAvailable.setTextColor(Color.RED);
+        }
+
         // Edit button
         holder.btnEdit.setOnClickListener(v -> {
 
@@ -102,6 +113,7 @@ public class TechnicianAdapter
         TextView tvName;
         TextView tvSpecialization;
         TextView tvPhone;
+        TextView tvIsAvailable;
 
         View btnEdit;
         View btnDelete;
@@ -121,6 +133,10 @@ public class TechnicianAdapter
 
             tvPhone = itemView.findViewById(
                     R.id.tvPhone
+            );
+
+            tvIsAvailable = itemView.findViewById(
+                    R.id.tvIsAvailable
             );
 
             btnEdit = itemView.findViewById(

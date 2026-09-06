@@ -10,7 +10,6 @@ public class Branch {
 
     public Branch() { }
 
-    // Location member ge constructor eka (id String widihata gannawa, int ekata convert karanawa)
     public Branch(String branchId, String name,String address,String phone, double latitude, double longitude) {
         this.branchId = branchId;
         this.name = name;
