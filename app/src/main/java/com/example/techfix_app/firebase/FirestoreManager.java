@@ -5,6 +5,7 @@ import com.example.techfix_app.models.InventoryItem;
 import com.example.techfix_app.models.Technician;
 import com.example.techfix_app.models.Branch;
 import com.example.techfix_app.models.Service;
+import com.example.techfix_app.models.Appointment;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
@@ -387,6 +388,56 @@ public class FirestoreManager {
         return firestore
                 .collection("technicians")
                 .document(documentId)
+                .delete();
+    }
+
+
+
+    // APPOINTMENTS
+
+    public Task<Void> addAppointment(Appointment appointment) {
+
+        DocumentReference document =
+                firestore.collection("appointments").document();
+
+        appointment.setAppointmentId(document.getId());
+
+        return document.set(appointment);
+    }
+
+    public Task<DocumentSnapshot> getAppointment(String appointmentId) {
+
+        return firestore.collection("appointments")
+                .document(appointmentId)
+                .get();
+    }
+
+    public Task<QuerySnapshot> getAllAppointments() {
+
+        return firestore.collection("appointments")
+                .get();
+    }
+
+    public Task<QuerySnapshot> getCustomerAppointments(String customerId) {
+
+        return firestore.collection("appointments")
+                .whereEqualTo("customerId", customerId)
+                .get();
+    }
+
+    public Task<Void> updateAppointment(
+            String appointmentId,
+            Map<String, Object> updates) {
+
+        return firestore.collection("appointments")
+                .document(appointmentId)
+                .update(updates);
+    }
+
+    public Task<Void> deleteAppointment(String appointmentId) {
+
+        return firestore.collection("appointments")
+                .document(appointmentId)
                 .delete();
     }
 }
