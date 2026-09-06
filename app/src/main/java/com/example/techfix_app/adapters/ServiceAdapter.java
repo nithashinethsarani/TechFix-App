@@ -58,9 +58,7 @@ public class ServiceAdapter extends RecyclerView.Adapter<ServiceAdapter.ServiceV
             holder.ivCategoryIcon.setImageResource(R.drawable.ic_computer);
         }
 
-        boolean isAvailable = "Available".equalsIgnoreCase(service.getAvailability());
-
-        if (isAvailable) {
+        if (Boolean.TRUE.equals(service.getIsAvailable())) {
             holder.tvAvailability.setText("● Available");
             holder.tvAvailability.setTextColor(0xFF4CAF50);
         } else {
