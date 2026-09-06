@@ -55,6 +55,7 @@ public class ServiceDetailsActivity extends AppCompatActivity {
             intent.putExtra("serviceName", serviceName);
             intent.putExtra("deviceCategory", deviceCategory);
             intent.putExtra("price", price);
+            intent.putExtra("serviceId",serviceId);
             startActivity(intent);
         });
     }

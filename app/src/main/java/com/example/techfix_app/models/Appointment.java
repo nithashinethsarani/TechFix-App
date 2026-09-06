@@ -1,9 +1,12 @@
 package com.example.techfix_app.models;
 
+import com.google.firebase.firestore.FieldValue;
+
 public class Appointment {
 
     private String appointmentId;
     private String customerId;
+    private String customerName;
     private String serviceId;
     private String branchId;
     private String technicianId;
@@ -15,7 +18,7 @@ public class Appointment {
     private String problemDescription;
 
     private String status;
-    private long createdAt;
+    private FieldValue createdAt;
 
     public Appointment() {
     }
@@ -23,6 +26,7 @@ public class Appointment {
     public Appointment(
             String appointmentId,
             String customerId,
+            String customerName,
             String serviceId,
             String branchId,
             String technicianId,
@@ -32,10 +36,11 @@ public class Appointment {
             String deviceCategory,
             String problemDescription,
             String status,
-            long createdAt) {
+            FieldValue createdAt) {
 
         this.appointmentId = appointmentId;
         this.customerId = customerId;
+        this.customerName = customerName;
         this.serviceId = serviceId;
         this.branchId = branchId;
         this.technicianId = technicianId;
@@ -63,6 +68,10 @@ public class Appointment {
     public void setCustomerId(String customerId) {
         this.customerId = customerId;
     }
+
+    public String getCustomerName(){return  customerName;}
+
+    public void setCustomerName(String customerName){this.customerName = customerName;}
 
     public String getServiceId() {
         return serviceId;
@@ -135,11 +144,11 @@ public class Appointment {
         this.status = status;
     }
 
-    public long getCreatedAt() {
+    public FieldValue getCreatedAt() {
         return createdAt;
     }
 
-    public void setCreatedAt(long createdAt) {
+    public void setCreatedAt(FieldValue createdAt) {
         this.createdAt = createdAt;
     }
 }

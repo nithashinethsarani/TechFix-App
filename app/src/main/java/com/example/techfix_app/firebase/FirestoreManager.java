@@ -1,11 +1,11 @@
 package com.example.techfix_app.firebase;
 
+import com.example.techfix_app.models.Appointment;
 import com.example.techfix_app.models.User;
 import com.example.techfix_app.models.InventoryItem;
 import com.example.techfix_app.models.Technician;
 import com.example.techfix_app.models.Branch;
 import com.example.techfix_app.models.Service;
-import com.example.techfix_app.models.Appointment;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
@@ -393,51 +393,58 @@ public class FirestoreManager {
 
 
 
-    // APPOINTMENTS
-
-    public Task<Void> addAppointment(Appointment appointment) {
-
-        DocumentReference document =
-                firestore.collection("appointments").document();
-
-        appointment.setAppointmentId(document.getId());
-
-        return document.set(appointment);
-    }
-
-    public Task<DocumentSnapshot> getAppointment(String appointmentId) {
-
-        return firestore.collection("appointments")
-                .document(appointmentId)
-                .get();
-    }
-
+    //APPOINTMENTS
+    // Get all appointments
     public Task<QuerySnapshot> getAllAppointments() {
 
-        return firestore.collection("appointments")
+        return firestore
+                .collection("appointments")
                 .get();
     }
 
-    public Task<QuerySnapshot> getCustomerAppointments(String customerId) {
 
-        return firestore.collection("appointments")
-                .whereEqualTo("customerId", customerId)
-                .get();
+    // Add a new appointment
+    public Task<DocumentReference> addAppointment(
+            Appointment appointment) {
+
+        return firestore
+                .collection("appointments")
+                .add(appointment);
     }
 
+
+    // Add or replace appointment using a specific document ID
+    public Task<Void> setAppontment(
+            String documentId,
+            Appointment appointment) {
+
+        return firestore
+                .collection("appointments")
+                .document(documentId)
+                .set(appointment);
+    }
+
+
+    // Update selected appointment fields
     public Task<Void> updateAppointment(
-            String appointmentId,
+            String documentId,
             Map<String, Object> updates) {
 
-        return firestore.collection("appointments")
-                .document(appointmentId)
+        return firestore
+                .collection("appointments")
+                .document(documentId)
                 .update(updates);
     }
 
-    public Task<Void> deleteAppointment(String appointmentId) {
 
-        return firestore.collection("appointments")
-                .document(appointmentId)
+    // Delete a appointment
+    public Task<Void> deleteAppointment(
+            String documentId) {
+
+        return firestore
+                .collection("appointments")
+                .document(documentId)
                 .delete();
     }
+
 }
