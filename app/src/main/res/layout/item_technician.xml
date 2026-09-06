@@ -4,6 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_margin="6dp"
+    app:cardBackgroundColor="#FFFFFF"
     app:cardCornerRadius="8dp"
     app:cardElevation="3dp">
 
@@ -18,19 +19,22 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textSize="16sp"
-            android:textStyle="bold" />
+            android:textStyle="bold"
+            android:textColor="#0D1B3E" />
 
         <TextView
             android:id="@+id/tvSpecialization"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textSize="14sp" />
+            android:textSize="14sp"
+            android:textColor="#0D1B3E" />
 
         <TextView
             android:id="@+id/tvPhone"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textSize="14sp" />
+            android:textSize="14sp"
+            android:textColor="#0D1B3E" />
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -42,13 +46,18 @@
                 android:id="@+id/btnEdit"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Edit" />
+                android:text="Edit"
+                app:backgroundTint="#0D1B3E"
+                android:textColor="#FFFFFF"
+                android:layout_marginEnd="8dp" />
 
             <Button
                 android:id="@+id/btnDelete"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Delete" />
+                android:text="Delete"
+                app:backgroundTint="#0D1B3E"
+                android:textColor="#FFFFFF" />
         </LinearLayout>
     </LinearLayout>
 </androidx.cardview.widget.CardView>
