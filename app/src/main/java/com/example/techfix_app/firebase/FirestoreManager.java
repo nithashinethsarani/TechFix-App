@@ -1,5 +1,6 @@
 package com.example.techfix_app.firebase;
 
+import com.example.techfix_app.models.Appointment;
 import com.example.techfix_app.models.User;
 import com.example.techfix_app.models.InventoryItem;
 import com.example.techfix_app.models.Technician;
@@ -389,4 +390,61 @@ public class FirestoreManager {
                 .document(documentId)
                 .delete();
     }
+
+
+
+    //APPOINTMENTS
+    // Get all appointments
+    public Task<QuerySnapshot> getAllAppointments() {
+
+        return firestore
+                .collection("appointments")
+                .get();
+    }
+
+
+    // Add a new appointment
+    public Task<DocumentReference> addAppointment(
+            Appointment appointment) {
+
+        return firestore
+                .collection("appointments")
+                .add(appointment);
+    }
+
+
+    // Add or replace appointment using a specific document ID
+    public Task<Void> setAppontment(
+            String documentId,
+            Appointment appointment) {
+
+        return firestore
+                .collection("appointments")
+                .document(documentId)
+                .set(appointment);
+    }
+
+
+    // Update selected appointment fields
+    public Task<Void> updateAppointment(
+            String documentId,
+            Map<String, Object> updates) {
+
+        return firestore
+                .collection("appointments")
+                .document(documentId)
+                .update(updates);
+    }
+
+
+    // Delete a appointment
+    public Task<Void> deleteAppointment(
+            String documentId) {
+
+        return firestore
+                .collection("appointments")
+                .document(documentId)
+                .delete();
+    }
+
 }

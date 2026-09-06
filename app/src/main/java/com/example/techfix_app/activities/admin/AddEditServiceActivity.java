@@ -466,13 +466,7 @@ public class AddEditServiceActivity extends AppCompatActivity {
         if (isEditMode) {
 
             firestoreManager
-                    .setService(
-                            serviceId,
-                            service
-                    )
-                    .addOnSuccessListener(
-                            unused -> {
-
+                    .setService(serviceId, service).addOnSuccessListener(unused -> {
                                 Toast.makeText(
                                         this,
                                         "Service updated successfully",
