@@ -35,6 +35,13 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content" />
 
+    <CheckBox
+        android:id="@+id/cbTechAvailable"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Technician Available"
+        android:checked="false" />
+
     <Button
         android:id="@+id/btnSaveTechnician"
         android:layout_width="match_parent"
