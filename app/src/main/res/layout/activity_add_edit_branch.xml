@@ -3,32 +3,46 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:padding="16dp">
+    android:padding="16dp"
+    android:background="@color/bg_dark">
 
     <EditText
         android:id="@+id/etBranchName"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Branch Name" />
+        android:hint="Branch Name"
+        android:textColor="@color/text_white"
+        android:textColorHint="@color/text_secondary"
+        android:backgroundTint="@color/text_secondary" />
 
     <EditText
         android:id="@+id/etAddress"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Address" />
+        android:layout_marginTop="8dp"
+        android:hint="Address"
+        android:textColor="@color/text_white"
+        android:textColorHint="@color/text_secondary"
+        android:backgroundTint="@color/text_secondary" />
 
     <EditText
         android:id="@+id/etPhone"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
         android:hint="Phone Number"
-        android:inputType="phone" />
+        android:inputType="phone"
+        android:textColor="@color/text_white"
+        android:textColorHint="@color/text_secondary"
+        android:backgroundTint="@color/text_secondary" />
 
     <Button
         android:id="@+id/btnSave"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
-        android:text="Save Branch" />
+        android:text="Save Branch"
+        android:backgroundTint="@color/white"
+        android:textColor="@color/bg_dark" />
 
 </LinearLayout>
