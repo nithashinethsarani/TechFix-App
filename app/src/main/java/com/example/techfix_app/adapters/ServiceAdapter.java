@@ -13,12 +13,11 @@ import com.example.techfix_app.R;
 import com.example.techfix_app.models.Service;
 
 import java.util.List;
-import java.util.Locale;
 
 public class ServiceAdapter extends RecyclerView.Adapter<ServiceAdapter.ServiceViewHolder> {
 
-    private final List<Service> serviceList;
-    private final OnServiceClickListener listener;
+    private List<Service> serviceList;
+    private OnServiceClickListener listener;
     private String userRole = "user";
 
     public interface OnServiceClickListener {
@@ -27,101 +26,93 @@ public class ServiceAdapter extends RecyclerView.Adapter<ServiceAdapter.ServiceV
         void onDeleteClick(Service service);
     }
 
-    public ServiceAdapter(
-            List<Service> serviceList,
-            OnServiceClickListener listener) {
+    public ServiceAdapter(List<Service> serviceList, OnServiceClickListener listener) {
         this.serviceList = serviceList;
         this.listener = listener;
     }
 
-    // Public setter so fetchUserRole() in Activities can resolve this method
     public void setUserRole(String userRole) {
-        this.userRole = userRole != null ? userRole : "user";
+        this.userRole = userRole;
         notifyDataSetChanged();
     }
 
     @NonNull
     @Override
-    public ServiceViewHolder onCreateViewHolder(
-            @NonNull ViewGroup parent,
-            int viewType) {
-
+    public ServiceViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext())
                 .inflate(R.layout.item_service, parent, false);
-
         return new ServiceViewHolder(view);
     }
 
     @Override
-    public void onBindViewHolder(
-            @NonNull ServiceViewHolder holder,
-            int position) {
-
+    public void onBindViewHolder(@NonNull ServiceViewHolder holder, int position) {
         Service service = serviceList.get(position);
 
         holder.tvServiceName.setText(service.getName());
+        holder.tvDeviceCategory.setText(service.getDeviceCategory());
+        holder.tvPrice.setText(String.format("Rs. %.2f", service.getPrice()));
 
-        if (service.getDeviceCategory() != null && !service.getDeviceCategory().isEmpty()) {
-            holder.tvDeviceCategory.setText(service.getDeviceCategory());
-            holder.tvDeviceCategory.setVisibility(View.VISIBLE);
+        if ("Mobile".equalsIgnoreCase(service.getDeviceCategory())) {
+            holder.ivCategoryIcon.setImageResource(R.drawable.ic_mobile);
         } else {
-            holder.tvDeviceCategory.setVisibility(View.GONE);
+            holder.ivCategoryIcon.setImageResource(R.drawable.ic_computer);
         }
 
-        holder.tvPrice.setText(
-                String.format(
-                        Locale.getDefault(),
-                        "Rs. %.2f",
-                        service.getPrice()
-                )
-        );
+        if (Boolean.TRUE.equals(service.getIsAvailable())) {
+            holder.tvAvailability.setText("● Available");
+            holder.tvAvailability.setTextColor(0xFF4CAF50);
+        } else {
+            holder.tvAvailability.setText("● Unavailable");
+            holder.tvAvailability.setTextColor(0xFFE53935);
+        }
 
+        // Show edit/delete icons only for admin users
         boolean isAdmin = "admin".equalsIgnoreCase(userRole);
+        holder.btnEditService.setVisibility(isAdmin ? View.VISIBLE : View.GONE);
+        holder.btnDeleteService.setVisibility(isAdmin ? View.VISIBLE : View.GONE);
 
-        if (holder.btnEdit != null) {
-            holder.btnEdit.setVisibility(isAdmin ? View.VISIBLE : View.GONE);
-            holder.btnEdit.setOnClickListener(v -> {
-                if (listener != null) listener.onEditClick(service);
-            });
-        }
+        holder.btnEditService.setOnClickListener(v -> {
+            if (listener != null) {
+                listener.onEditClick(service);
+            }
+        });
 
-        if (holder.btnDelete != null) {
-            holder.btnDelete.setVisibility(isAdmin ? View.VISIBLE : View.GONE);
-            holder.btnDelete.setOnClickListener(v -> {
-                if (listener != null) listener.onDeleteClick(service);
-            });
-        }
+        holder.btnDeleteService.setOnClickListener(v -> {
+            if (listener != null) {
+                listener.onDeleteClick(service);
+            }
+        });
 
         holder.itemView.setOnClickListener(v -> {
-            if (listener != null) listener.onServiceClick(service);
+            if (listener != null) {
+                listener.onServiceClick(service);
+            }
         });
     }
 
     @Override
     public int getItemCount() {
-        return serviceList != null ? serviceList.size() : 0;
+        return serviceList.size();
+    }
+
+    public void updateList(List<Service> newList) {
+        this.serviceList = newList;
+        notifyDataSetChanged();
     }
 
     static class ServiceViewHolder extends RecyclerView.ViewHolder {
+        ImageView ivCategoryIcon, btnEditService, btnDeleteService;
+        TextView tvServiceName, tvDeviceCategory, tvPrice, tvAvailability;
 
-        ImageView ivCategoryIcon;
-        TextView tvServiceName;
-        TextView tvDeviceCategory;
-        TextView tvAvailability;
-        TextView tvPrice;
-        View btnEdit, btnDelete;
-
-        ServiceViewHolder(@NonNull View itemView) {
+        public ServiceViewHolder(@NonNull View itemView) {
             super(itemView);
-
             ivCategoryIcon = itemView.findViewById(R.id.ivCategoryIcon);
             tvServiceName = itemView.findViewById(R.id.tvServiceName);
             tvDeviceCategory = itemView.findViewById(R.id.tvDeviceCategory);
-            tvAvailability = itemView.findViewById(R.id.tvAvailability);
             tvPrice = itemView.findViewById(R.id.tvPrice);
-
-            btnEdit = itemView.findViewById(R.id.btnEditService);
-            btnDelete = itemView.findViewById(R.id.btnDeleteService);
+            tvAvailability = itemView.findViewById(R.id.tvAvailability);
+            btnEditService = itemView.findViewById(R.id.btnEditService);
+            btnDeleteService = itemView.findViewById(R.id.btnDeleteService);
         }
     }
 }

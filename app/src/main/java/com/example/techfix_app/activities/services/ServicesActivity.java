@@ -3,7 +3,9 @@ package com.example.techfix_app.activities.services;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ProgressBar;
+import android.widget.SearchView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -27,9 +29,12 @@ public class ServicesActivity extends AppCompatActivity {
 
     private FirestoreManager firestoreManager;
     private ServiceAdapter adapter;
-    private String userRole = "user";
 
-    private final List<Service> serviceList = new ArrayList<>();
+    private final List<Service> fullServiceList = new ArrayList<>();
+    private final List<Service> displayedList = new ArrayList<>();
+
+    private String currentCategory = "All";
+    private String currentSearchText = "";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,13 +44,17 @@ public class ServicesActivity extends AppCompatActivity {
         recyclerViewServices = findViewById(R.id.recyclerViewServices);
         progressBar = findViewById(R.id.progressBar);
         tvNoServices = findViewById(R.id.tvNoServices);
+        SearchView searchView = findViewById(R.id.searchView);
+        Button btnAll = findViewById(R.id.btnAll);
+        Button btnComputer = findViewById(R.id.btnComputer);
+        Button btnMobile = findViewById(R.id.btnMobile);
 
         firestoreManager = new FirestoreManager();
 
         recyclerViewServices.setLayoutManager(new LinearLayoutManager(this));
 
         adapter = new ServiceAdapter(
-                serviceList,
+                displayedList,
                 new ServiceAdapter.OnServiceClickListener() {
                     @Override
                     public void onServiceClick(Service service) {
@@ -53,37 +62,68 @@ public class ServicesActivity extends AppCompatActivity {
                                 ServicesActivity.this,
                                 ServiceDetailsActivity.class
                         );
+
+                        // Duplicate extra removal
                         intent.putExtra("service_id", service.getId());
                         intent.putExtra("service_name", service.getName());
                         intent.putExtra("device_category", service.getDeviceCategory());
                         intent.putExtra("price", service.getPrice());
                         intent.putExtra("description", service.getDescription());
-                        intent.putExtra("available", service.getAvailability());
+                        intent.putExtra("available", service.getIsAvailable());
                         startActivity(intent);
                     }
 
                     @Override
-                    public void onEditClick(Service service) {}
+                    public void onEditClick(Service service) {
+                        // Admin edit functionality goes here
+                    }
 
                     @Override
-                    public void onDeleteClick(Service service) {}
+                    public void onDeleteClick(Service service) {
+                        // Admin delete functionality goes here
+                    }
                 }
         );
 
-
-        // Attached adapter and closed onCreate method
         recyclerViewServices.setAdapter(adapter);
         fetchUserRole();
+
+        // Category filter buttons
+        btnAll.setOnClickListener(v -> {
+            currentCategory = "All";
+            applyFilters();
+        });
+        btnComputer.setOnClickListener(v -> {
+            currentCategory = "Computer";
+            applyFilters();
+        });
+        btnMobile.setOnClickListener(v -> {
+            currentCategory = "Mobile";
+            applyFilters();
+        });
+
+        // Search listener
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                currentSearchText = query;
+                applyFilters();
+                return true;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                currentSearchText = newText;
+                applyFilters();
+                return true;
+            }
+        });
     }
 
     @Override
     protected void onResume() {
         super.onResume();
         loadServices();
-    }
-
-    public void setUserRole(String userRole) {
-        this.userRole = userRole;
     }
 
     private void fetchUserRole() {
@@ -101,7 +141,6 @@ public class ServicesActivity extends AppCompatActivity {
     }
 
     private void loadServices() {
-
         progressBar.setVisibility(View.VISIBLE);
         tvNoServices.setVisibility(View.GONE);
 
@@ -110,26 +149,15 @@ public class ServicesActivity extends AppCompatActivity {
 
                     @Override
                     public void onSuccess(List<Service> services) {
-
                         progressBar.setVisibility(View.GONE);
-
-                        serviceList.clear();
-                        serviceList.addAll(services);
-
-                        adapter.notifyDataSetChanged();
-
-                        if (serviceList.isEmpty()) {
-                            tvNoServices.setVisibility(View.VISIBLE);
-                        } else {
-                            tvNoServices.setVisibility(View.GONE);
-                        }
+                        fullServiceList.clear();
+                        fullServiceList.addAll(services);
+                        applyFilters();
                     }
 
                     @Override
                     public void onFailure(Exception e) {
-
                         progressBar.setVisibility(View.GONE);
-
                         Toast.makeText(
                                 ServicesActivity.this,
                                 "Failed to load services: " + e.getMessage(),
@@ -138,5 +166,27 @@ public class ServicesActivity extends AppCompatActivity {
                     }
                 }
         );
+    }
+
+    // Filters fullServiceList by category + search text, updates adapter
+    private void applyFilters() {
+        List<Service> filtered = new ArrayList<>();
+
+        for (Service s : fullServiceList) {
+            boolean matchesCategory = currentCategory.equals("All")
+                    || (s.getDeviceCategory() != null && s.getDeviceCategory().equalsIgnoreCase(currentCategory));
+            boolean matchesSearch = currentSearchText.isEmpty()
+                    || (s.getName() != null && s.getName().toLowerCase().contains(currentSearchText.toLowerCase()));
+
+            if (matchesCategory && matchesSearch) {
+                filtered.add(s);
+            }
+        }
+
+        displayedList.clear();
+        displayedList.addAll(filtered);
+        adapter.notifyDataSetChanged();
+
+        tvNoServices.setVisibility(displayedList.isEmpty() ? View.VISIBLE : View.GONE);
     }
 }

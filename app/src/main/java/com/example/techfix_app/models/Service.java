@@ -10,7 +10,7 @@ public class Service {
     private String description;
     private double price;
     private String deviceCategory;
-    private String availability;
+    private Boolean isAvailable;
     private List<String> inventoryItemIds;
 
     public Service() {
@@ -22,7 +22,7 @@ public class Service {
                    String description,
                    double price,
                    String deviceCategory,
-                   String availability,
+                   Boolean isAvailable,
                    List<String> inventoryItemIds) {
 
         this.id = id;
@@ -30,7 +30,7 @@ public class Service {
         this.description = description;
         this.price = price;
         this.deviceCategory = deviceCategory;
-        this.availability = availability;
+        this.isAvailable = isAvailable;
 
         this.inventoryItemIds = inventoryItemIds == null
                 ? new ArrayList<>()
@@ -77,12 +77,12 @@ public class Service {
         this.deviceCategory = deviceCategory;
     }
 
-    public String getAvailability() {
-        return availability;
+    public Boolean getIsAvailable() {
+        return isAvailable;
     }
 
-    public void setAvailability(String availability) {
-        this.availability = availability;
+    public void setIsAvailable(Boolean availability) {
+        this.isAvailable = availability;
     }
 
     public List<String> getInventoryItemIds() {

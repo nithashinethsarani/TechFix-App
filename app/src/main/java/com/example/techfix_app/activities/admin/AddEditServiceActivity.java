@@ -26,6 +26,8 @@ public class AddEditServiceActivity extends AppCompatActivity {
     private EditText etServiceDescription;
     private EditText etServicePrice;
 
+    private CheckBox cbServiceAvailable;
+
     private Spinner spinnerServiceCategory;
 
     private LinearLayout layoutInventoryItems;
@@ -60,6 +62,9 @@ public class AddEditServiceActivity extends AppCompatActivity {
 
         etServiceDescription =
                 findViewById(R.id.etServiceDescription);
+
+        cbServiceAvailable =
+                findViewById(R.id.cbServiceAvailable);
 
         etServicePrice =
                 findViewById(R.id.etServicePrice);
@@ -100,10 +105,7 @@ public class AddEditServiceActivity extends AppCompatActivity {
 
         String[] categories = {
                 "Mobile",
-                "Laptop",
-                "Desktop",
-                "Tablet",
-                "Other"
+                "Computer"
         };
 
         ArrayAdapter<String> adapter =
@@ -172,6 +174,8 @@ public class AddEditServiceActivity extends AppCompatActivity {
                                             service.getPrice()
                                     )
                             );
+
+                            cbServiceAvailable.setChecked(Boolean.TRUE.equals(service.getIsAvailable()));
 
                             setCategory(
                                     service.getDeviceCategory()
@@ -363,6 +367,14 @@ public class AddEditServiceActivity extends AppCompatActivity {
                         .toString()
                         .trim();
 
+        Boolean isAvailable;
+        if(cbServiceAvailable.isChecked()) {
+            isAvailable = true;
+        }
+        else{
+            isAvailable=false;
+        }
+
         String priceText =
                 etServicePrice.getText()
                         .toString()
@@ -438,22 +450,15 @@ public class AddEditServiceActivity extends AppCompatActivity {
 
         service.setName(name);
 
-        service.setDescription(
-                description
-        );
+        service.setDescription(description);
 
-        service.setDeviceCategory(
-                category
-        );
+        service.setDeviceCategory(category);
 
-        service.setPrice(
-                price
-        );
+        service.setPrice(price);
 
-        service.setInventoryItemIds(
-                selectedIds
-        );
+        service.setInventoryItemIds(selectedIds);
 
+        service.setIsAvailable(isAvailable);
 
         btnSaveService.setEnabled(false);
 
@@ -461,13 +466,7 @@ public class AddEditServiceActivity extends AppCompatActivity {
         if (isEditMode) {
 
             firestoreManager
-                    .setService(
-                            serviceId,
-                            service
-                    )
-                    .addOnSuccessListener(
-                            unused -> {
-
+                    .setService(serviceId, service).addOnSuccessListener(unused -> {
                                 Toast.makeText(
                                         this,
                                         "Service updated successfully",
