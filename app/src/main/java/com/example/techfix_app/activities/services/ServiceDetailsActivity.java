@@ -3,6 +3,7 @@ package com.example.techfix_app.activities.services;
 import android.content.Intent;
 import android.os.Bundle;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -23,29 +24,30 @@ public class ServiceDetailsActivity extends AppCompatActivity {
         TextView tvDescription = findViewById(R.id.tvDescription);
         TextView tvAvailability = findViewById(R.id.tvAvailability);
         Button btnBookAppointment = findViewById(R.id.btnBookAppointment);
+        ImageView imgAvailable = findViewById(R.id.imgAvailable);
 
         String serviceId = getIntent().getStringExtra("service_id");
         String serviceName = getIntent().getStringExtra("service_name");
         String deviceCategory = getIntent().getStringExtra("device_category");
         double price = getIntent().getDoubleExtra("price", 0.0);
         String description = getIntent().getStringExtra("description");
-        String availability = getIntent().getStringExtra("available");
+        boolean available = getIntent().getBooleanExtra("available", true);
 
         tvServiceName.setText(serviceName);
         tvDeviceCategory.setText(deviceCategory);
         tvPrice.setText(String.format("Rs. %.2f", price));
         tvDescription.setText(description);
 
-        boolean isAvailable = "Available".equalsIgnoreCase(availability);
-
-        if (isAvailable) {
+        if (available) {
             tvAvailability.setText("Available");
             tvAvailability.setTextColor(0xFF2E7D32);
             btnBookAppointment.setEnabled(true);
+            imgAvailable.setImageResource(R.drawable.ic_check_circle);
         } else {
-            tvAvailability.setText("Unavailable - Spare parts not in stock");
+            tvAvailability.setText("Unavailable");
             tvAvailability.setTextColor(0xFFC62828);
             btnBookAppointment.setEnabled(false);
+            imgAvailable.setImageResource(R.drawable.ic_error);
         }
 
         btnBookAppointment.setOnClickListener(v -> {
