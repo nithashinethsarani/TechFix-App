@@ -285,7 +285,7 @@ public class AppointmentActivity extends AppCompatActivity {
         appointment.setDeviceCategory(dCat);
         appointment.setDeviceName(dName);
         appointment.setDeviceDescription(dDesc);
-        appointment.setStatus("Submitted");
+        appointment.setStatus("pending");
         appointment.setCreatedAt(FieldValue.serverTimestamp());
 
         btnSubmitBooking.setEnabled(false);

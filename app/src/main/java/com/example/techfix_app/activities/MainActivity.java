@@ -115,7 +115,6 @@ public class MainActivity extends AppCompatActivity {
         btnBranches = findViewById(R.id.btnBranches);
 
         btnProfile = findViewById(R.id.btnProfile);
-
     }
 
 
@@ -125,14 +124,7 @@ public class MainActivity extends AppCompatActivity {
         //Services
         btnServices.setOnClickListener(v -> {
 
-            Intent intent = new Intent(
-
-                    MainActivity.this,
-
-                    ServicesActivity.class
-
-            );
-
+            Intent intent = new Intent(MainActivity.this,ServicesActivity.class);
             startActivity(intent);
 
         });
@@ -140,86 +132,47 @@ public class MainActivity extends AppCompatActivity {
         // Book Appointment
         btnAppointments.setOnClickListener(v -> {
 
-            Intent intent = new Intent(
-
-                    MainActivity.this,
-
-                    ServicesActivity.class
-
-            );
-
+            Intent intent = new Intent(MainActivity.this,ServicesActivity.class);
             startActivity(intent);
 
         });
 
 
 
-// Track Repair
-
+        // Track Repair
         btnTrackRepair.setOnClickListener(v -> {
 
-            Intent intent = new Intent(
-
-                    MainActivity.this,
-
-                    RepairStatusActivity.class
-
-            );
-
+            Intent intent = new Intent(MainActivity.this,RepairStatusActivity.class);
             startActivity(intent);
 
         });
 
 
 
-// Repair History
-
+        // Repair History
         btnRepairHistory.setOnClickListener(v -> {
 
-            Intent intent = new Intent(
-
-                    MainActivity.this,
-
-                    RepairHistoryActivity.class
-
-            );
-
+            Intent intent = new Intent(MainActivity.this,RepairHistoryActivity.class);
             startActivity(intent);
 
         });
 
 
 
-// Branches
-
+        // Branches
         btnBranches.setOnClickListener(v -> {
 
-            Intent intent = new Intent(
-
-                    MainActivity.this,
-
-                    BranchActivity.class
-
-            );
-
+            Intent intent = new Intent(MainActivity.this,BranchActivity.class);
             startActivity(intent);
 
         });
 
 
 
-// Profile
-
+        // Profile
         btnProfile.setOnClickListener(v -> {
 
-            Intent intent = new Intent(
-
-                    MainActivity.this,
-
-                    ProfileActivity.class
-
-            );
-
+            Intent intent = new Intent(MainActivity.this,ProfileActivity.class);
             startActivity(intent);
 
         });
