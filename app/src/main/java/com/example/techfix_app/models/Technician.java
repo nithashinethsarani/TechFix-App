@@ -7,6 +7,7 @@ public class Technician {
     private String specialization;
     private String phone;
     private String branchId;
+    private Boolean isAvailable;
 
     public Technician() {
     }
@@ -30,4 +31,8 @@ public class Technician {
     public String getBranchId() {return branchId;}
 
     public void setBranchId(String branchId) {this.branchId = branchId;}
+
+    public Boolean getIsAvailable(){return isAvailable;}
+
+    public void setIsAvailable(Boolean isAvailable){this.isAvailable = isAvailable; }
 }

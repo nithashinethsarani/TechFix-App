@@ -26,6 +26,7 @@ import com.google.android.gms.location.LocationServices;
 
 import java.util.ArrayList;
 import java.util.List;
+import android.content.Intent;
 
 public class BranchActivity extends AppCompatActivity {
 
@@ -62,7 +63,10 @@ public class BranchActivity extends AppCompatActivity {
 
         btnConfirmBranch.setOnClickListener(v -> {
             if (selectedBranch != null) {
-                Toast.makeText(this, "Branch confirmed: " + selectedBranch.getName(), Toast.LENGTH_SHORT).show();
+                Intent resultIntent = new Intent();
+                resultIntent.putExtra("branch_id", selectedBranch.getBranchId());
+                resultIntent.putExtra("branch_name", selectedBranch.getName());
+                setResult(RESULT_OK, resultIntent);
                 finish();
             } else {
                 Toast.makeText(this, "Still detecting location...", Toast.LENGTH_SHORT).show();

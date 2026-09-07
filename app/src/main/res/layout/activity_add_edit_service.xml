@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:fillViewport="true">
+    android:fillViewport="true"
+    android:background="@color/bg_dark">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -16,18 +16,24 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="Service Name"
-            android:inputType="textCapSentences" />
+            android:inputType="textCapSentences"
+            android:textColor="@color/text_white"
+            android:textColorHint="@color/text_secondary"
+            android:backgroundTint="@color/text_secondary" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
-            android:text="Device Category" />
+            android:text="Device Category"
+            android:textColor="@color/text_white" />
 
         <Spinner
             android:id="@+id/spinnerServiceCategory"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            android:layout_height="41dp"
+            android:background="@color/card_bg"
+            android:popupBackground="@color/card_bg" />
 
         <EditText
             android:id="@+id/etServicePrice"
@@ -35,7 +41,10 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
             android:hint="Service Price"
-            android:inputType="numberDecimal" />
+            android:inputType="numberDecimal"
+            android:textColor="@color/text_white"
+            android:textColorHint="@color/text_secondary"
+            android:backgroundTint="@color/text_secondary" />
 
         <EditText
             android:id="@+id/etServiceDescription"
@@ -45,7 +54,10 @@
             android:gravity="top"
             android:hint="Service Description"
             android:inputType="textMultiLine"
-            android:minLines="3" />
+            android:minLines="3"
+            android:textColor="@color/text_white"
+            android:textColorHint="@color/text_secondary"
+            android:backgroundTint="@color/text_secondary" />
 
         <CheckBox
             android:id="@+id/cbServiceAvailable"
@@ -53,21 +65,25 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
             android:checked="true"
-            android:text="Service Available" />
+            android:text="Service Available"
+            android:textColor="@color/text_white"
+            android:buttonTint="@color/white" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
             android:text="Required Inventory Items"
-            android:textStyle="bold" />
+            android:textStyle="bold"
+            android:textColor="@color/text_white" />
 
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
             android:text="Select the inventory items needed to perform this service"
-            android:textSize="12sp" />
+            android:textSize="12sp"
+            android:textColor="@color/text_secondary" />
 
         <LinearLayout
             android:id="@+id/layoutInventoryItems"
@@ -81,7 +97,9 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="20dp"
-            android:text="Save Service" />
+            android:text="Save Service"
+            android:backgroundTint="@color/white"
+            android:textColor="@color/bg_dark" />
 
     </LinearLayout>
 

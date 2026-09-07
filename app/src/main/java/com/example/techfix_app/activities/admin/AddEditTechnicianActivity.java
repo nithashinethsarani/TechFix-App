@@ -3,6 +3,7 @@ package com.example.techfix_app.activities.admin;
 import android.os.Bundle;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.Toast;
@@ -26,6 +27,7 @@ public class AddEditTechnicianActivity extends AppCompatActivity {
     private EditText etPhone;
     private Spinner spinnerBranch;
     private Button btnSave;
+    private CheckBox cbTechAvailable;
 
     private FirestoreManager firestoreManager;
 
@@ -48,6 +50,7 @@ public class AddEditTechnicianActivity extends AppCompatActivity {
         etPhone = findViewById(R.id.etTechPhone);
         spinnerBranch = findViewById(R.id.spinnerBranch);
         btnSave = findViewById(R.id.btnSaveTechnician);
+        cbTechAvailable = findViewById(R.id.cbTechAvailable);
 
         firestoreManager = new FirestoreManager();
 
@@ -150,6 +153,10 @@ public class AddEditTechnicianActivity extends AppCompatActivity {
                             technician.getPhone()
                     );
 
+                    cbTechAvailable.setChecked(
+                            Boolean.TRUE.equals(technician.getIsAvailable())
+                    );
+
                     // Store branch ID so the Spinner
                     // can select it after branches load.
                     selectedTechnicianBranchId =
@@ -214,6 +221,7 @@ public class AddEditTechnicianActivity extends AppCompatActivity {
                 .toString()
                 .trim();
 
+        Boolean isAvailable = cbTechAvailable.isChecked();
 
         if (name.isEmpty()
                 || specialization.isEmpty()
@@ -265,10 +273,10 @@ public class AddEditTechnicianActivity extends AppCompatActivity {
         technician.setName(name);
         technician.setSpecialization(specialization);
         technician.setPhone(phone);
+        technician.setIsAvailable(isAvailable);
         technician.setBranchId(
                 selectedBranch.getBranchId()
         );
-
 
         if (technicianId == null
                 || technicianId.isEmpty()) {
