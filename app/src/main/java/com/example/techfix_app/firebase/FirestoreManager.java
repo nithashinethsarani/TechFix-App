@@ -447,4 +447,29 @@ public class FirestoreManager {
                 .delete();
     }
 
+    // REPAIRS HISTORY
+
+    public interface OnCompletedRepairsLoadedListener {
+        void onSuccess(List<DocumentSnapshot> repairDocuments);
+        void onFailure(Exception e);
+    }
+
+    // Fetch completed or ready repairs for the customer
+    public void getCompletedRepairsForCustomer(String customerId, OnCompletedRepairsLoadedListener listener) {
+        firestore.collection("repairs")
+                .whereEqualTo("customerId", customerId)
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    List<DocumentSnapshot> completedRepairs = new ArrayList<>();
+                    for (DocumentSnapshot doc : queryDocumentSnapshots.getDocuments()) {
+                        String status = doc.getString("status");
+                        if ("Completed".equalsIgnoreCase(status) || "Ready for Collection".equalsIgnoreCase(status)) {
+                            completedRepairs.add(doc);
+                        }
+                    }
+                    listener.onSuccess(completedRepairs);
+                })
+                .addOnFailureListener(listener::onFailure);
+    }
+
 }
