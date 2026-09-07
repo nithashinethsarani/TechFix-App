@@ -1,84 +1,129 @@
 <?xml version="1.0" encoding="utf-8"?>
-
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="#0D1B3E">
 
     <LinearLayout
+        android:id="@+id/headerBar"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="180dp"
+        android:background="@drawable/header_bg"
         android:orientation="vertical"
-        android:padding="20dp">
+        android:gravity="center"
+        android:padding="20dp"
+        android:layout_alignParentTop="true">
 
-        <!-- App Name -->
         <TextView
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="TechFix"
-            android:textSize="30sp"
+            android:textColor="#FFFFFF"
+            android:textSize="36sp"
             android:textStyle="bold"
-            android:gravity="center"
-            android:layout_marginBottom="8dp" />
+            android:gravity="center" />
 
-        <!-- Welcome Message -->
         <TextView
             android:id="@+id/tvWelcome"
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
             android:text="Welcome to TechFix!"
+            android:textColor="#94A3B8"
             android:textSize="18sp"
-            android:gravity="center"
-            android:layout_marginBottom="25dp" />
-
-        <!-- Services -->
-        <Button
-            android:id="@+id/btnServices"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="View Repair Services"
-            android:layout_marginBottom="10dp" />
-
-        <!-- Appointments -->
-        <Button
-            android:id="@+id/btnAppointments"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Book an Appointment"
-            android:layout_marginBottom="10dp" />
-
-        <!-- Track Repair -->
-        <Button
-            android:id="@+id/btnTrackRepair"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Track My Repair"
-            android:layout_marginBottom="10dp" />
-
-        <!-- Repair History -->
-        <Button
-            android:id="@+id/btnRepairHistory"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Repair History"
-            android:layout_marginBottom="10dp" />
-
-        <!-- Branches -->
-        <Button
-            android:id="@+id/btnBranches"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="View Branches"
-            android:layout_marginBottom="10dp" />
-
-        <!-- Profile -->
-        <Button
-            android:id="@+id/btnProfile"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="My Profile"
-            android:layout_marginBottom="10dp" />
-
+            android:gravity="center" />
     </LinearLayout>
 
-</ScrollView>
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@id/headerBar"
+        android:fillViewport="true"
+        android:clipToPadding="false"
+        android:paddingHorizontal="16dp"
+        android:paddingBottom="24dp">
 
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingTop="20dp">
+
+            <Button
+                android:id="@+id/btnServices"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:background="@drawable/rounded_button_accent"
+                android:text="View Repair Services"
+                android:textColor="#0D1B3E"
+                android:textSize="15sp"
+                android:textStyle="bold"
+                android:layout_marginBottom="14dp"
+                app:backgroundTint="@null" />
+
+            <Button
+                android:id="@+id/btnAppointments"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:background="@drawable/rounded_button_accent"
+                android:text="Book an Appointment"
+                android:textColor="#0D1B3E"
+                android:textSize="15sp"
+                android:textStyle="bold"
+                android:layout_marginBottom="14dp"
+                app:backgroundTint="@null" />
+
+            <Button
+                android:id="@+id/btnTrackRepair"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:background="@drawable/rounded_button_accent"
+                android:text="Track My Repair"
+                android:textColor="#0D1B3E"
+                android:textSize="15sp"
+                android:textStyle="bold"
+                android:layout_marginBottom="14dp"
+                app:backgroundTint="@null" />
+
+            <Button
+                android:id="@+id/btnRepairHistory"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:background="@drawable/rounded_button_accent"
+                android:text="Repair History"
+                android:textColor="#0D1B3E"
+                android:textSize="15sp"
+                android:textStyle="bold"
+                android:layout_marginBottom="14dp"
+                app:backgroundTint="@null" />
+
+            <Button
+                android:id="@+id/btnBranches"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:background="@drawable/rounded_button_accent"
+                android:text="View Branches"
+                android:textColor="#0D1B3E"
+                android:textSize="15sp"
+                android:textStyle="bold"
+                android:layout_marginBottom="14dp"
+                app:backgroundTint="@null" />
+
+            <Button
+                android:id="@+id/btnProfile"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:background="@drawable/rounded_button_accent"
+                android:text="My Profile"
+                android:textColor="#0D1B3E"
+                android:textSize="15sp"
+                android:textStyle="bold"
+                android:layout_marginBottom="14dp"
+                app:backgroundTint="@null" />
+
+        </LinearLayout>
+
+    </ScrollView>
+
+</RelativeLayout>
