@@ -1,6 +1,7 @@
 package com.example.techfix_app.activities.branches;
 
 import android.Manifest;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -23,12 +24,19 @@ import com.example.techfix_app.models.Branch;
 import com.example.techfix_app.utils.LocationUtils;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
+import com.google.android.gms.maps.model.MarkerOptions;
 
 import java.util.ArrayList;
 import java.util.List;
-import android.content.Intent;
 
-public class BranchActivity extends AppCompatActivity {
+public class BranchActivity extends AppCompatActivity implements OnMapReadyCallback {
 
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 100;
 
@@ -39,6 +47,9 @@ public class BranchActivity extends AppCompatActivity {
     private List<Branch> branchList;
     private BranchListAdapter adapter;
     private FirestoreManager firestoreManager;
+
+    private GoogleMap googleMap;
+    private LatLng userLatLng;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -58,6 +69,13 @@ public class BranchActivity extends AppCompatActivity {
         recyclerAllBranches.setLayoutManager(new LinearLayoutManager(this));
         recyclerAllBranches.setAdapter(adapter);
 
+        // Setup map fragment
+        SupportMapFragment mapFragment = (SupportMapFragment)
+                getSupportFragmentManager().findFragmentById(R.id.mapFragment);
+        if (mapFragment != null) {
+            mapFragment.getMapAsync(this);
+        }
+
         // Load branches
         loadBranchesFromFirestore();
 
@@ -74,6 +92,15 @@ public class BranchActivity extends AppCompatActivity {
         });
     }
 
+    @Override
+    public void onMapReady(@NonNull GoogleMap map) {
+        googleMap = map;
+        // If branches already loaded before map was ready, plot them now
+        if (!branchList.isEmpty()) {
+            plotBranchesOnMap();
+        }
+    }
+
     private void loadBranchesFromFirestore() {
         firestoreManager.getAllBranches(new FirestoreManager.OnBranchesLoadedListener() {
             @Override
@@ -81,6 +108,10 @@ public class BranchActivity extends AppCompatActivity {
                 branchList.clear();
                 branchList.addAll(branches);
                 adapter.notifyDataSetChanged();
+
+                if (googleMap != null) {
+                    plotBranchesOnMap();
+                }
 
                 // Find nearest branch
                 checkLocationPermissionAndFetch();
@@ -91,6 +122,41 @@ public class BranchActivity extends AppCompatActivity {
                 Toast.makeText(BranchActivity.this, "Failed to load branches: " + e.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
+    }
+
+    // Adds a marker for every branch on the map
+    private void plotBranchesOnMap() {
+        googleMap.clear();
+
+        LatLngBounds.Builder boundsBuilder = new LatLngBounds.Builder();
+        boolean hasPoints = false;
+
+        for (Branch branch : branchList) {
+            LatLng position = new LatLng(branch.getLatitude(), branch.getLongitude());
+
+            googleMap.addMarker(new MarkerOptions()
+                    .position(position)
+                    .title(branch.getName())
+                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)));
+
+            boundsBuilder.include(position);
+            hasPoints = true;
+        }
+
+        if (userLatLng != null) {
+            googleMap.addMarker(new MarkerOptions()
+                    .position(userLatLng)
+                    .title("You are here")
+                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED)));
+            boundsBuilder.include(userLatLng);
+            hasPoints = true;
+        }
+
+        if (hasPoints) {
+            googleMap.animateCamera(
+                    CameraUpdateFactory.newLatLngBounds(boundsBuilder.build(), 80)
+            );
+        }
     }
 
     private void checkLocationPermissionAndFetch() {
@@ -127,10 +193,16 @@ public class BranchActivity extends AppCompatActivity {
                 double userLat = location.getLatitude();
                 double userLng = location.getLongitude();
 
+                userLatLng = new LatLng(userLat, userLng);
+
                 selectedBranch = LocationUtils.findNearestBranch(userLat, userLng, branchList);
 
                 if (selectedBranch != null) {
                     tvNearestBranch.setText(selectedBranch.getName());
+                }
+
+                if (googleMap != null) {
+                    plotBranchesOnMap();
                 }
             } else if (branchList.isEmpty()) {
                 tvNearestBranch.setText("No branches available");
