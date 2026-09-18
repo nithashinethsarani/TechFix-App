@@ -140,9 +140,8 @@ public class AppointmentDetailsActivity extends AppCompatActivity {
 
         btnAssignTechnician.setOnClickListener(v -> assignTechnician());
 
-        btnCreateRepair.setOnClickListener(v -> createRepair());
-
-
+        btnCreateRepair.setOnClickListener(v ->
+                createRepair());
     }
 
     private void setupTechnicianSpinner() {
@@ -417,6 +416,11 @@ public class AppointmentDetailsActivity extends AppCompatActivity {
     }
 
     private void createRepair() {
+        if (appointment == null || appointment.getAppointmentId() == null) {
+            Toast.makeText(this, "Invalid appointment details", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
         if (appointment.getTechnicianId() == null || appointment.getTechnicianId().isEmpty()) {
             Toast.makeText(
                     AppointmentDetailsActivity.this,
@@ -426,54 +430,83 @@ public class AppointmentDetailsActivity extends AppCompatActivity {
             return;
         }
 
-        DocumentReference document = db.collection("repairs").document();
-        String generatedRepairId = document.getId();
+        progressBar.setVisibility(View.VISIBLE);
 
-        Repair repair = new Repair();
-        repair.setRepairId(generatedRepairId);
-        repair.setAppointmentId(appointment.getAppointmentId());
-        repair.setCustomerId(appointment.getCustomerId());
-        repair.setServiceId(appointment.getServiceId());
-        repair.setBranchId(appointment.getBranchId());
-        repair.setTechnicianId(appointment.getTechnicianId());
-        repair.setDeviceCategory(appointment.getDeviceCategory());
-        repair.setDeviceName(appointment.getDeviceName());
-        repair.setDeviceDescription(appointment.getDeviceDescription());
-        repair.setStatus("received");
+        // Check if a repair already exists with this appointmentId
+        firestoreManager.getRepairByAppointmentId(appointment.getAppointmentId())
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    if (!queryDocumentSnapshots.isEmpty()) {
+                        progressBar.setVisibility(View.GONE);
+                        Toast.makeText(
+                                AppointmentDetailsActivity.this,
+                                "A repair has already been created for this appointment!",
+                                Toast.LENGTH_LONG
+                        ).show();
+                        return;
+                    }
 
-        firestoreManager.createRepair(repair)
-                .addOnSuccessListener(unused -> {
-                    String apptId = appointment.getAppointmentId();
-                    Map<String, Object> updates = new HashMap<>();
-                    updates.put("status", "received");
+                    DocumentReference document = db.collection("repairs").document();
+                    String generatedRepairId = document.getId();
 
-                    firestoreManager.updateAppointment(apptId, updates)
-                            .addOnSuccessListener(unused1 -> {
-                                appointment.setStatus("received");
-                                tvStatus.setText("Status: received");
+                    Repair repair = new Repair();
+                    repair.setRepairId(generatedRepairId);
+                    repair.setAppointmentId(appointment.getAppointmentId());
+                    repair.setCustomerId(appointment.getCustomerId());
+                    repair.setServiceId(appointment.getServiceId());
+                    repair.setBranchId(appointment.getBranchId());
+                    repair.setTechnicianId(appointment.getTechnicianId());
+                    repair.setDeviceCategory(appointment.getDeviceCategory());
+                    repair.setDeviceName(appointment.getDeviceName());
+                    repair.setDeviceDescription(appointment.getDeviceDescription());
+                    repair.setStatus("received");
 
-                                Toast.makeText(
-                                        AppointmentDetailsActivity.this,
-                                        "Repair created successfully",
-                                        Toast.LENGTH_SHORT
-                                ).show();
+                    firestoreManager.createRepair(repair)
+                            .addOnSuccessListener(unused -> {
+                                String apptId = appointment.getAppointmentId();
+                                Map<String, Object> updates = new HashMap<>();
+                                updates.put("status", "received");
+
+                                firestoreManager.updateAppointment(apptId, updates)
+                                        .addOnSuccessListener(unused1 -> {
+                                            progressBar.setVisibility(View.GONE);
+                                            appointment.setStatus("received");
+                                            tvStatus.setText("Status: received");
+
+                                            Toast.makeText(
+                                                    AppointmentDetailsActivity.this,
+                                                    "Repair created successfully",
+                                                    Toast.LENGTH_SHORT
+                                            ).show();
+                                            finish();
+                                        })
+                                        .addOnFailureListener(e -> {
+                                            progressBar.setVisibility(View.GONE);
+                                            Toast.makeText(
+                                                    AppointmentDetailsActivity.this,
+                                                    "Failed to update appointment: " + e.getMessage(),
+                                                    Toast.LENGTH_LONG
+                                            ).show();
+                                        });
                             })
                             .addOnFailureListener(e -> {
+                                progressBar.setVisibility(View.GONE);
                                 Toast.makeText(
                                         AppointmentDetailsActivity.this,
-                                        "Failed to update appointment: " + e.getMessage(),
+                                        "Failed to create repair: " + e.getMessage(),
                                         Toast.LENGTH_LONG
                                 ).show();
                             });
                 })
                 .addOnFailureListener(e -> {
+                    progressBar.setVisibility(View.GONE);
                     Toast.makeText(
                             AppointmentDetailsActivity.this,
-                            "Failed to create repair: " + e.getMessage(),
+                            "Error checking existing repair: " + e.getMessage(),
                             Toast.LENGTH_LONG
                     ).show();
                 });
     }
+
 
 
     private String safe(String value) {

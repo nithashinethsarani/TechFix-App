@@ -231,6 +231,13 @@ public class FirestoreManager {
                 .addOnFailureListener(listener::onFailure);
     }
 
+
+    public Task<DocumentSnapshot> getService(String serviceId) {
+        return firestore.collection("services")
+                .document(serviceId)
+                .get();
+    }
+
     public Task<Void> addService(Service service) {
 
         DocumentReference document =
@@ -310,6 +317,12 @@ public class FirestoreManager {
 
         return firestore
                 .collection("inventory")
+                .get();
+    }
+
+    public Task<DocumentSnapshot> getInventoryItem(String itemDocumentId) {
+        return firestore.collection("inventory")
+                .document(itemDocumentId)
                 .get();
     }
 
@@ -557,6 +570,12 @@ public class FirestoreManager {
     public Task<DocumentSnapshot> getRepair(String repairId) {
         return firestore.collection("repairs")
                 .document(repairId)
+                .get();
+    }
+
+    public Task<QuerySnapshot> getRepairByAppointmentId(String appointmentId) {
+        return firestore.collection("repairs")
+                .whereEqualTo("appointmentId", appointmentId)
                 .get();
     }
 

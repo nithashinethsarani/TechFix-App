@@ -40,6 +40,8 @@ public class RepairDetailsActivity extends AppCompatActivity {
 
     private Button btnSave;
 
+    private Button btnDelete;
+
     private ProgressBar progressBar;
 
     private FirestoreManager firestoreManager;
@@ -97,6 +99,7 @@ public class RepairDetailsActivity extends AppCompatActivity {
         spinnerStatus = findViewById(R.id.spinnerStatus);
 
         btnSave = findViewById(R.id.btnSave);
+        btnDelete = findViewById(R.id.btnDelete);
 
         progressBar = findViewById(R.id.progressBar);
     }
@@ -128,6 +131,11 @@ public class RepairDetailsActivity extends AppCompatActivity {
 
         btnSave.setOnClickListener(
                 v -> saveRepair()
+        );
+
+        btnDelete.setOnClickListener(
+                v ->
+                deleteRepair(repair.getRepairId())
         );
     }
 
@@ -348,6 +356,32 @@ public class RepairDetailsActivity extends AppCompatActivity {
                     btnSave.setEnabled(true);
 
                     Toast.makeText(this, "Failed to update repair: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                });
+    }
+
+    public void deleteRepair(String repairId){
+        if (repair == null || repair.getAppointmentId() == null) {
+            Toast.makeText(this, "Cannot delete: Repair details missing", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        progressBar.setVisibility(View.VISIBLE);
+        btnDelete.setEnabled(false);
+        firestoreManager.deleteRepair(repairId)
+                .addOnSuccessListener(unused -> {
+                    Map <String,Object>updates = new HashMap<>();
+                    updates.put("status","confirmed");
+                    firestoreManager.updateAppointment(repair.getAppointmentId(),updates)
+                            .addOnSuccessListener(unused1 -> {
+                                progressBar.setVisibility(View.GONE);
+                                btnSave.setEnabled(true);
+                               Toast.makeText(this,"Repair deleted successfully", Toast.LENGTH_LONG);
+                               finish();
+                            }).addOnFailureListener(e -> {
+                                Toast.makeText(this, "Failed to update Appointment "+e.getMessage(), Toast.LENGTH_LONG);
+                            });
+                }).addOnFailureListener(e -> {
+                    Toast.makeText(this, "Failed to delete repair"+e.getMessage(), Toast.LENGTH_LONG);
                 });
     }
 
