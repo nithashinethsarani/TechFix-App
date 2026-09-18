@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<ScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="20dp">
+
+        <TextView
+            android:id="@+id/tvRepair"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Repair ID"
+            android:textSize="20sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tvCustomerId"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:text="Customer ID" />
+
+        <TextView
+            android:id="@+id/tvAppointment"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Appointment ID" />
+
+        <TextView
+            android:id="@+id/tvServiceId"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Service ID" />
+
+        <TextView
+            android:id="@+id/tvBranchId"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Branch ID" />
+
+        <TextView
+            android:id="@+id/tvTechnicianId"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Technician ID" />
+
+        <TextView
+            android:id="@+id/tvDevice"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="Device"
+            android:textSize="17sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tvDeviceCategory"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Category" />
+
+        <TextView
+            android:id="@+id/tvProblem"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="Problem" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:text="Diagnosis"
+            android:textStyle="bold" />
+
+        <EditText
+            android:id="@+id/etDiagnosis"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Enter diagnosis"
+            android:gravity="top"
+            android:minLines="3"
+            android:inputType="textMultiLine" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="Repair Notes"
+            android:textStyle="bold" />
+
+        <EditText
+            android:id="@+id/etRepairNotes"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Enter repair notes"
+            android:gravity="top"
+            android:minLines="3"
+            android:inputType="textMultiLine" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="Final Price"
+            android:textStyle="bold" />
+
+        <EditText
+            android:id="@+id/etFinalPrice"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Enter final price"
+            android:inputType="numberDecimal" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="Repair Status"
+            android:textStyle="bold" />
+
+        <Spinner
+            android:id="@+id/spinnerStatus"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
+        <Button
+            android:id="@+id/btnSave"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:text="Save Repair" />
+
+        <ProgressBar
+            android:id="@+id/progressBar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_marginTop="16dp"
+            android:visibility="gone" />
+
+    </LinearLayout>
+
+</ScrollView>
