@@ -273,13 +273,58 @@ public class AppointmentActivity extends AppCompatActivity {
             return;
         }
 
+        btnSubmitBooking.setEnabled(false);
+
+        firestoreManager.checkServiceStockAtBranch(
+                serviceId,
+                selectedBranchId,
+                (available, message) -> {
+
+                    if (!available) {
+                        btnSubmitBooking.setEnabled(true);
+
+                        Toast.makeText(
+                                AppointmentActivity.this,
+                                message,
+                                Toast.LENGTH_LONG
+                        ).show();
+
+                        return;
+                    }
+
+                    createAppointment(
+                            name,
+                            phone,
+                            date,
+                            timeSlot,
+                            dCat,
+                            dName,
+                            dDesc,
+                            currentUser.getUid()
+                    );
+                }
+        );
+    }
+
+    private void createAppointment(
+            String name,
+            String phone,
+            String date,
+            String timeSlot,
+            String dCat,
+            String dName,
+            String dDesc,
+            String customerId) {
+
         DocumentReference document = db.collection("appointments").document();
+
         String generatedAppointmentId = document.getId();
 
         Appointment appointment = new Appointment();
         appointment.setAppointmentId(generatedAppointmentId);
-        appointment.setCustomerId(currentUser.getUid());
+        appointment.setCustomerId(customerId);
         appointment.setCustomerName(name);
+        appointment.setCustomerPhone(phone);
         appointment.setServiceId(serviceId);
         appointment.setBranchId(selectedBranchId);
         appointment.setTechnicianId(null);
@@ -289,8 +334,6 @@ public class AppointmentActivity extends AppCompatActivity {
         appointment.setDeviceName(dName);
         appointment.setDeviceDescription(dDesc);
         appointment.setStatus("pending");
-
-        btnSubmitBooking.setEnabled(false);
 
         document.set(appointment)
                 .addOnSuccessListener(unused -> {

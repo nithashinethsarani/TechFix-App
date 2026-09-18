@@ -156,9 +156,7 @@ public class FirestoreManager {
                 .get();
     }
 
-    public Task<DocumentSnapshot> getTechnicianById(String technicianId) {
-        return firestore.collection("technicians").document(technicianId).get();
-    }
+
 
     // Get all documents in a collection
     public Task<QuerySnapshot> getCollection(
@@ -382,6 +380,10 @@ public class FirestoreManager {
                 .get();
     }
 
+    public Task<DocumentSnapshot> getTechnicianById(String technicianId) {
+        return firestore.collection("technicians").document(technicianId).get();
+    }
+
     public Task<QuerySnapshot> getAvailableTechniciansByBranch(
             String branchId) {
 
@@ -390,6 +392,9 @@ public class FirestoreManager {
                 .whereEqualTo("isAvailable", true)
                 .get();
     }
+
+
+
 
 
     // Add a new technician
@@ -606,6 +611,125 @@ public class FirestoreManager {
         return firestore.collection("repairs")
                 .whereEqualTo("technicianId", technicianId)
                 .get();
+    }
+
+
+    public interface OnServiceStockCheckedListener {
+        void onResult(boolean available, String message);
+    }
+
+
+    // used for checking service inventory item availability
+    public void checkServiceStockAtBranch(
+            String serviceId,
+            String branchId,
+            OnServiceStockCheckedListener listener) {
+
+        if (serviceId == null || serviceId.trim().isEmpty()
+                || branchId == null || branchId.trim().isEmpty()) {
+            listener.onResult(false, "Please select a service and branch.");
+            return;
+        }
+
+        getService(serviceId)
+                .addOnSuccessListener(serviceDoc -> {
+                    if (!serviceDoc.exists()) {
+                        listener.onResult(false, "Service not found.");
+                        return;
+                    }
+
+                    List<String> requiredItemIds =
+                            (List<String>) serviceDoc.get("inventoryItemIds");
+
+                    if (requiredItemIds == null || requiredItemIds.isEmpty()) {
+                        listener.onResult(
+                                false,
+                                "This service has no required inventory parts configured."
+                        );
+                        return;
+                    }
+
+                    getAllInventory()
+                            .addOnSuccessListener(inventoryDocs -> {
+                                List<String> unavailableItems =
+                                        new ArrayList<>();
+
+                                for (String requiredId : requiredItemIds) {
+                                    boolean foundInBranch = false;
+
+                                    for (DocumentSnapshot inventoryDoc :
+                                            inventoryDocs.getDocuments()) {
+
+                                        String inventoryBranchId =
+                                                inventoryDoc.getString("branchId");
+
+                                        String inventoryItemId =
+                                                inventoryDoc.getString("itemId");
+
+                                        boolean sameBranch =
+                                                branchId.equals(inventoryBranchId);
+
+                                        boolean sameItem =
+                                                requiredId.equals(inventoryDoc.getId())
+                                                        || requiredId.equals(inventoryItemId);
+
+                                        if (sameBranch && sameItem) {
+                                            foundInBranch = true;
+
+                                            Long quantity =
+                                                    inventoryDoc.getLong("quantity");
+
+                                            if (quantity == null || quantity <= 0) {
+                                                String itemName =
+                                                        inventoryDoc.getString("itemName");
+
+                                                unavailableItems.add(
+                                                        itemName != null
+                                                                ? itemName
+                                                                : requiredId
+                                                );
+                                            }
+
+                                            break;
+                                        }
+                                    }
+
+                                    if (!foundInBranch) {
+                                        unavailableItems.add(requiredId);
+                                    }
+                                }
+
+                                if (unavailableItems.isEmpty()) {
+                                    listener.onResult(
+                                            true,
+                                            "All required parts are available."
+                                    );
+                                } else {
+                                    listener.onResult(
+                                            false,
+                                            "This service is unavailable at the selected branch. "
+                                                    + "Unavailable parts: "
+                                                    + android.text.TextUtils.join(
+                                                    ", ",
+                                                    unavailableItems
+                                            )
+                                    );
+                                }
+                            })
+                            .addOnFailureListener(e ->
+                                    listener.onResult(
+                                            false,
+                                            "Could not check branch inventory: "
+                                                    + e.getMessage()
+                                    )
+                            );
+                })
+                .addOnFailureListener(e ->
+                        listener.onResult(
+                                false,
+                                "Could not load service: " + e.getMessage()
+                        )
+                );
     }
 
 }

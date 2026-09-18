@@ -10,6 +10,7 @@ public class Appointment {
     private String appointmentId;
     private String customerId;
     private String customerName;
+    private String phone;
     private String serviceId;
     private String branchId;
     private String technicianId;
@@ -32,6 +33,7 @@ public class Appointment {
             String appointmentId,
             String customerId,
             String customerName,
+            String phone,
             String serviceId,
             String branchId,
             String technicianId,
@@ -46,6 +48,7 @@ public class Appointment {
         this.appointmentId = appointmentId;
         this.customerId = customerId;
         this.customerName = customerName;
+        this.phone  = phone;
         this.serviceId = serviceId;
         this.branchId = branchId;
         this.technicianId = technicianId;
@@ -77,6 +80,10 @@ public class Appointment {
     public String getCustomerName(){return  customerName;}
 
     public void setCustomerName(String customerName){this.customerName = customerName;}
+
+    public String getCustomerPhone(){return phone;}
+
+    public void setCustomerPhone(String phone){this.phone = phone;}
 
     public String getServiceId() {
         return serviceId;

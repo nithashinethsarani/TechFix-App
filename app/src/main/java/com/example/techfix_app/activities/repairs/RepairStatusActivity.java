@@ -1,8 +1,8 @@
-
 package com.example.techfix_app.activities.repairs;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
@@ -16,12 +16,15 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.example.techfix_app.R;
 import com.example.techfix_app.activities.payment.PaymentActivity;
 import com.example.techfix_app.firebase.FirestoreManager;
-import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentSnapshot;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class RepairStatusActivity extends AppCompatActivity {
+
+    private static final String TAG = "RepairStatusActivity";
 
     private TextView tvDeviceName;
     private TextView tvStatus;
@@ -32,10 +35,12 @@ public class RepairStatusActivity extends AppCompatActivity {
 
     private LinearLayout layoutRepairInventoryItems;
     private Button btnProceedToPay;
+    private Button btnCancelRepair;
     private ProgressBar progressBar;
 
     private FirestoreManager firestoreManager;
     private String currentRepairId;
+    private String currentAppointmentId;
 
     private String currentPaymentStatus = "unpaid";
     private double currentFinalPrice = 0;
@@ -53,25 +58,17 @@ public class RepairStatusActivity extends AppCompatActivity {
         tvRepairDescription = findViewById(R.id.tvRepairDescription);
         tvInventoryMessage = findViewById(R.id.tvInventoryMessage);
 
-        layoutRepairInventoryItems =
-                findViewById(R.id.layoutRepairInventoryItems);
-
+        layoutRepairInventoryItems = findViewById(R.id.layoutRepairInventoryItems);
         btnProceedToPay = findViewById(R.id.btnProceedToPay);
+        btnCancelRepair = findViewById(R.id.btnCancelRepair);
         progressBar = findViewById(R.id.progressBar);
 
         firestoreManager = new FirestoreManager();
 
         currentRepairId = getIntent().getStringExtra("repairId");
 
-        if (currentRepairId == null ||
-                currentRepairId.trim().isEmpty()) {
-
-            Toast.makeText(
-                    this,
-                    "Repair ID is missing",
-                    Toast.LENGTH_LONG
-            ).show();
-
+        if (currentRepairId == null || currentRepairId.trim().isEmpty()) {
+            Toast.makeText(this, "Repair ID is missing", Toast.LENGTH_LONG).show();
             finish();
             return;
         }
@@ -80,26 +77,27 @@ public class RepairStatusActivity extends AppCompatActivity {
 
         btnProceedToPay.setOnClickListener(v -> openPaymentScreen());
 
-        fetchRepairDetails();
+        if (btnCancelRepair != null) {
+            btnCancelRepair.setOnClickListener(v -> deleteRepair(currentRepairId));
+        } else {
+            Log.e(TAG, "btnCancelRepair is null. Check layout XML for ID R.id.btnCancelRepair");
+        }
     }
 
     @Override
     protected void onResume() {
         super.onResume();
 
-        if (firestoreManager != null &&
-                currentRepairId != null) {
+        if (firestoreManager != null && currentRepairId != null) {
             fetchRepairDetails();
         }
     }
 
     private void fetchRepairDetails() {
-
         showLoading(true);
 
         firestoreManager.getRepair(currentRepairId)
                 .addOnSuccessListener(doc -> {
-
                     if (!doc.exists()) {
                         showLoading(false);
                         showRepairNotFound();
@@ -110,76 +108,70 @@ public class RepairStatusActivity extends AppCompatActivity {
                 })
                 .addOnFailureListener(e -> {
                     showLoading(false);
-
                     Toast.makeText(
                             this,
-                            "Failed to load repair: " +
-                                    e.getMessage(),
+                            "Failed to load repair: " + e.getMessage(),
                             Toast.LENGTH_LONG
                     ).show();
                 });
     }
 
     private void loadRepairData(DocumentSnapshot doc) {
-
         String deviceName = doc.getString("deviceName");
         String status = doc.getString("status");
         String technicianId = doc.getString("technicianId");
-        String description = doc.getString("problemDescription");
+        String description = doc.getString("deviceDescription");
         String serviceId = doc.getString("serviceId");
         String paymentStatus = doc.getString("paymentStatus");
 
+        currentAppointmentId = doc.getString("appointmentId");
         Double finalPrice = doc.getDouble("finalPrice");
 
-        currentRepairStatus =
-                status != null ? status : "";
-
-        currentPaymentStatus =
-                paymentStatus != null
-                        ? paymentStatus
-                        : "unpaid";
-
-        currentFinalPrice =
-                finalPrice != null ? finalPrice : 0;
+        currentRepairStatus = status != null ? status : "";
+        currentPaymentStatus = paymentStatus != null ? paymentStatus : "unpaid";
+        currentFinalPrice = finalPrice != null ? finalPrice : 0;
 
         tvDeviceName.setText(
-                "Device: " +
-                        (deviceName != null
-                                ? deviceName
-                                : "Not specified")
+                "Device: " + (deviceName != null ? deviceName : "Not specified")
         );
 
         tvStatus.setText(
                 "Status: " + formatStatus(currentRepairStatus)
         );
 
-        tvTechnician.setText(
-                "Technician: " +
-                        (technicianId != null &&
-                                !technicianId.isEmpty()
-                                ? technicianId
-                                : "Not assigned")
-        );
+        if (technicianId != null && !technicianId.trim().isEmpty()) {
+            tvTechnician.setText("Technician: Loading...");
+
+            firestoreManager.getTechnicianById(technicianId)
+                    .addOnSuccessListener(techDoc -> {
+                        if (techDoc.exists()) {
+                            String techName = techDoc.getString("name");
+                            if (techName != null && !techName.isEmpty()) {
+                                tvTechnician.setText("Technician: " + techName);
+                            } else {
+                                tvTechnician.setText("Technician: " + technicianId);
+                            }
+                        } else {
+                            tvTechnician.setText("Technician: " + technicianId);
+                        }
+                    })
+                    .addOnFailureListener(e -> {
+                        tvTechnician.setText("Technician: " + technicianId);
+                    });
+        } else {
+            tvTechnician.setText("Technician: Not assigned");
+        }
 
         tvRepairDescription.setText(
-                "Problem: " +
-                        (description != null &&
-                                !description.isEmpty()
-                                ? description
-                                : "No description available")
+                "Problem: " + (description != null && !description.isEmpty() ? description : "No description available")
         );
 
         if (finalPrice != null) {
             tvTotalAmount.setText(
-                    String.format(
-                            "Final Price: Rs. %,.2f",
-                            currentFinalPrice
-                    )
+                    String.format("Final Price: Rs. %,.2f", currentFinalPrice)
             );
         } else {
-            tvTotalAmount.setText(
-                    "Final Price: Not set yet"
-            );
+            tvTotalAmount.setText("Final Price: Not set yet");
         }
 
         updatePaymentButton();
@@ -187,15 +179,12 @@ public class RepairStatusActivity extends AppCompatActivity {
         if (serviceId != null && !serviceId.isEmpty()) {
             loadServiceInventory(serviceId);
         } else {
-            showInventoryMessage(
-                    "Service information is unavailable"
-            );
+            showInventoryMessage("Service information is unavailable");
             showLoading(false);
         }
     }
 
     private void loadServiceInventory(String serviceId) {
-
         layoutRepairInventoryItems.removeAllViews();
 
         tvInventoryMessage.setVisibility(View.VISIBLE);
@@ -203,30 +192,20 @@ public class RepairStatusActivity extends AppCompatActivity {
 
         firestoreManager.getService(serviceId)
                 .addOnSuccessListener(serviceDoc -> {
-
                     if (!serviceDoc.exists()) {
                         showInventoryMessage("Service not found");
                         showLoading(false);
                         return;
                     }
 
-                    List<String> itemIds =
-                            (List<String>) serviceDoc.get(
-                                    "inventoryItemIds"
-                            );
+                    List<String> itemIds = (List<String>) serviceDoc.get("inventoryItemIds");
 
-                    // Support the alternate spelling if that is
-                    // the field name in your Firestore documents.
                     if (itemIds == null) {
-                        itemIds = (List<String>) serviceDoc.get(
-                                "intentoryItemIds"
-                        );
+                        itemIds = (List<String>) serviceDoc.get("intentoryItemIds");
                     }
 
                     if (itemIds == null || itemIds.isEmpty()) {
-                        showInventoryMessage(
-                                "No inventory items linked to this service"
-                        );
+                        showInventoryMessage("No inventory items linked to this service");
                         showLoading(false);
                         return;
                     }
@@ -238,10 +217,7 @@ public class RepairStatusActivity extends AppCompatActivity {
                     final int[] displayedItems = {0};
 
                     for (String itemId : itemIds) {
-
-                        if (itemId == null ||
-                                itemId.trim().isEmpty()) {
-
+                        if (itemId == null || itemId.trim().isEmpty()) {
                             loadedItems[0]++;
                             continue;
                         }
@@ -255,16 +231,12 @@ public class RepairStatusActivity extends AppCompatActivity {
                     }
 
                     if (totalItems == 0) {
-                        showInventoryMessage(
-                                "No inventory items linked to this service"
-                        );
+                        showInventoryMessage("No inventory items linked to this service");
                         showLoading(false);
                     }
                 })
                 .addOnFailureListener(e -> {
-                    showInventoryMessage(
-                            "Failed to load service items"
-                    );
+                    showInventoryMessage("Failed to load service items");
                     showLoading(false);
                 });
     }
@@ -275,22 +247,14 @@ public class RepairStatusActivity extends AppCompatActivity {
             int[] loadedItems,
             int[] displayedItems
     ) {
-
         firestoreManager.getInventoryItem(itemId)
                 .addOnSuccessListener(itemDoc -> {
-
                     if (itemDoc.exists()) {
-
-                        String itemName =
-                                itemDoc.getString("itemName");
-
-                        Double price =
-                                itemDoc.getDouble("price");
+                        String itemName = itemDoc.getString("itemName");
+                        Double price = itemDoc.getDouble("price");
 
                         addInventoryRow(
-                                itemName != null
-                                        ? itemName
-                                        : "Inventory item",
+                                itemName != null ? itemName : "Inventory item",
                                 price != null ? price : 0
                         );
 
@@ -298,22 +262,11 @@ public class RepairStatusActivity extends AppCompatActivity {
                     }
 
                     loadedItems[0]++;
-
-                    finishInventoryLoading(
-                            totalItems,
-                            loadedItems[0],
-                            displayedItems[0]
-                    );
+                    finishInventoryLoading(totalItems, loadedItems[0], displayedItems[0]);
                 })
                 .addOnFailureListener(e -> {
-
                     loadedItems[0]++;
-
-                    finishInventoryLoading(
-                            totalItems,
-                            loadedItems[0],
-                            displayedItems[0]
-                    );
+                    finishInventoryLoading(totalItems, loadedItems[0], displayedItems[0]);
                 });
     }
 
@@ -322,152 +275,150 @@ public class RepairStatusActivity extends AppCompatActivity {
             int loadedItems,
             int displayedItems
     ) {
-
         if (loadedItems >= totalItems) {
-
             if (displayedItems == 0) {
-                showInventoryMessage(
-                        "No matching inventory items were found"
-                );
+                showInventoryMessage("No matching inventory items were found");
             } else {
                 tvInventoryMessage.setVisibility(View.GONE);
             }
-
             showLoading(false);
         }
     }
 
-    private void addInventoryRow(
-            String itemName,
-            double price
-    ) {
-
+    private void addInventoryRow(String itemName, double price) {
         View row = LayoutInflater.from(this).inflate(
                 R.layout.item_repair_inventory,
                 layoutRepairInventoryItems,
                 false
         );
 
-        TextView tvName =
-                row.findViewById(R.id.tvInventoryItemName);
-
-        TextView tvPrice =
-                row.findViewById(R.id.tvInventoryItemPrice);
+        TextView tvName = row.findViewById(R.id.tvInventoryItemName);
+        TextView tvPrice = row.findViewById(R.id.tvInventoryItemPrice);
 
         tvName.setText(itemName);
-
-        tvPrice.setText(
-                String.format("Rs. %,.2f", price)
-        );
+        tvPrice.setText(String.format("Rs. %,.2f", price));
 
         layoutRepairInventoryItems.addView(row);
     }
 
     private void showInventoryMessage(String message) {
-
         layoutRepairInventoryItems.removeAllViews();
-
         tvInventoryMessage.setText(message);
         tvInventoryMessage.setVisibility(View.VISIBLE);
     }
 
     private void updatePaymentButton() {
-
-        boolean repairCompleted =
-                "completed".equalsIgnoreCase(
-                        currentRepairStatus
-                );
-
-        boolean paymentCompleted =
-                "paid".equalsIgnoreCase(
-                        currentPaymentStatus
-                );
-
+        boolean repairCompleted = "completed".equalsIgnoreCase(currentRepairStatus);
+        boolean paymentCompleted = "paid".equalsIgnoreCase(currentPaymentStatus);
         boolean priceAvailable = currentFinalPrice > 0;
 
         if (paymentCompleted) {
-
             btnProceedToPay.setEnabled(false);
             btnProceedToPay.setText("Payment Completed");
-
         } else if (repairCompleted && priceAvailable) {
-
             btnProceedToPay.setEnabled(true);
             btnProceedToPay.setText("Proceed to Payment");
-
         } else if (!repairCompleted) {
-
             btnProceedToPay.setEnabled(false);
-            btnProceedToPay.setText(
-                    "Payment Available After Completion"
-            );
-
+            btnProceedToPay.setText("Payment Available After Completion");
         } else {
-
             btnProceedToPay.setEnabled(false);
-            btnProceedToPay.setText(
-                    "Waiting for Final Price"
-            );
+            btnProceedToPay.setText("Waiting for Final Price");
         }
     }
 
+    public void deleteRepair(String repairId) {
+        showLoading(true);
+        if (btnCancelRepair != null) {
+            btnCancelRepair.setEnabled(false);
+        }
+
+        // Check if appointmentId is missing; if so, attempt to fetch repair again before deleting
+        if (currentAppointmentId == null || currentAppointmentId.trim().isEmpty()) {
+            firestoreManager.getRepair(repairId)
+                    .addOnSuccessListener(doc -> {
+                        if (doc.exists()) {
+                            currentAppointmentId = doc.getString("appointmentId");
+                            executeDeleteProcess(repairId);
+                        } else {
+                            showLoading(false);
+                            if (btnCancelRepair != null) btnCancelRepair.setEnabled(true);
+                            Toast.makeText(this, "Repair details not found", Toast.LENGTH_SHORT).show();
+                        }
+                    })
+                    .addOnFailureListener(e -> {
+                        showLoading(false);
+                        if (btnCancelRepair != null) btnCancelRepair.setEnabled(true);
+                        Toast.makeText(this, "Failed to retrieve repair details: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                    });
+        } else {
+            executeDeleteProcess(repairId);
+        }
+    }
+
+    private void executeDeleteProcess(String repairId) {
+        firestoreManager.deleteRepair(repairId)
+                .addOnSuccessListener(unused -> {
+                    if (currentAppointmentId != null && !currentAppointmentId.trim().isEmpty()) {
+                        Map<String, Object> updates = new HashMap<>();
+                        updates.put("status", "confirmed");
+
+                        firestoreManager.updateAppointment(currentAppointmentId, updates)
+                                .addOnSuccessListener(unused1 -> finishDeleteSuccess())
+                                .addOnFailureListener(e -> {
+                                    showLoading(false);
+                                    if (btnCancelRepair != null) btnCancelRepair.setEnabled(true);
+                                    Toast.makeText(this, "Failed to update Appointment: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                                });
+                    } else {
+                        // Deleted repair document successfully, but appointment ID wasn't present
+                        finishDeleteSuccess();
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    showLoading(false);
+                    if (btnCancelRepair != null) btnCancelRepair.setEnabled(true);
+                    Toast.makeText(this, "Failed to delete repair: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                });
+    }
+
+    private void finishDeleteSuccess() {
+        showLoading(false);
+        Toast.makeText(this, "Repair deleted successfully", Toast.LENGTH_LONG).show();
+        finish();
+    }
+
     private void openPaymentScreen() {
-
-        if (!"completed".equalsIgnoreCase(
-                currentRepairStatus)) {
-
-            Toast.makeText(
-                    this,
-                    "Repair is not completed yet",
-                    Toast.LENGTH_SHORT
-            ).show();
-
+        if (!"completed".equalsIgnoreCase(currentRepairStatus)) {
+            Toast.makeText(this, "Repair is not completed yet", Toast.LENGTH_SHORT).show();
             return;
         }
 
         if ("paid".equalsIgnoreCase(currentPaymentStatus)) {
-            Toast.makeText(
-                    this,
-                    "Payment has already been completed",
-                    Toast.LENGTH_SHORT
-            ).show();
-
+            Toast.makeText(this, "Payment has already been completed", Toast.LENGTH_SHORT).show();
             return;
         }
 
         if (currentFinalPrice <= 0) {
-            Toast.makeText(
-                    this,
-                    "Final price has not been set",
-                    Toast.LENGTH_SHORT
-            ).show();
-
+            Toast.makeText(this, "Final price has not been set", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        Intent intent = new Intent(
-                RepairStatusActivity.this,
-                PaymentActivity.class
-        );
-
+        Intent intent = new Intent(RepairStatusActivity.this, PaymentActivity.class);
         intent.putExtra("repairId", currentRepairId);
-
         startActivity(intent);
     }
 
     private String formatStatus(String status) {
-
         if (status == null || status.trim().isEmpty()) {
             return "Unknown";
         }
 
         String readable = status.replace("_", " ");
-        return readable.substring(0, 1).toUpperCase()
-                + readable.substring(1);
+        return readable.substring(0, 1).toUpperCase() + readable.substring(1);
     }
 
     private void showRepairNotFound() {
-
         tvDeviceName.setText("Repair not found");
         tvStatus.setText("Status: Unavailable");
         tvTechnician.setText("Technician: Unavailable");
@@ -479,11 +430,8 @@ public class RepairStatusActivity extends AppCompatActivity {
     }
 
     private void showLoading(boolean isLoading) {
-
         if (progressBar != null) {
-            progressBar.setVisibility(
-                    isLoading ? View.VISIBLE : View.GONE
-            );
+            progressBar.setVisibility(isLoading ? View.VISIBLE : View.GONE);
         }
     }
 }

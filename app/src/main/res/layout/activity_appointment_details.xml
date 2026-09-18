@@ -118,6 +118,13 @@
             android:layout_marginTop="16dp"
             android:text="Create Repair" />
 
+        <Button
+            android:id="@+id/btnDeleteAppointment"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="Delete Appointment" />
+
         <ProgressBar
             android:id="@+id/progressBar"
             android:layout_width="wrap_content"
