@@ -114,7 +114,7 @@ public class RepairStatusActivity extends AppCompatActivity {
         defaultParts.add(new SparePartAdapter.SpareItem("RAM Module 8GB", true));
 
         String status = isPaymentCompletedLocally ? "Ready for Delivery (Paid)" : "In Progress";
-        setUIData("Sample Laptop", status, "Kamal Perera", defaultParts, 12500.00, isPaymentCompletedLocally);
+        setUIData("Sample Laptop", status, "Nimal Perera", defaultParts, 12500.00, isPaymentCompletedLocally);
     }
 
     private void setUIData(String device, String status, String tech, List<SparePartAdapter.SpareItem> partsList, double amount, boolean isPaid) {
