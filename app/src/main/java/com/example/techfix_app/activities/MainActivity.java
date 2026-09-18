@@ -11,8 +11,8 @@ import com.example.techfix_app.activities.admin.AdminDashboardActivity;
 import com.example.techfix_app.activities.auth.LoginActivity;
 import com.example.techfix_app.activities.branches.BranchActivity;
 import com.example.techfix_app.activities.profile.ProfileActivity;
+import com.example.techfix_app.activities.repairs.CustomerRepairsActivity;
 import com.example.techfix_app.activities.repairs.RepairHistoryActivity;
-import com.example.techfix_app.activities.repairs.RepairStatusActivity;
 import com.example.techfix_app.activities.services.ServicesActivity;
 import com.example.techfix_app.firebase.FirestoreManager;
 import com.example.techfix_app.models.User;
@@ -109,7 +109,7 @@ public class MainActivity extends AppCompatActivity {
         // Track Repair
         if (btnTrackRepair != null) {
             btnTrackRepair.setOnClickListener(v -> {
-                Intent intent = new Intent(MainActivity.this, RepairStatusActivity.class);
+                Intent intent = new Intent(MainActivity.this, CustomerRepairsActivity.class);
                 startActivity(intent);
             });
         }

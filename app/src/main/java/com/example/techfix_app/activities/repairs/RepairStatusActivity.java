@@ -1,31 +1,45 @@
+
 package com.example.techfix_app.activities.repairs;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.LayoutInflater;
+import android.view.View;
 import android.widget.Button;
+import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
+
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.techfix_app.R;
 import com.example.techfix_app.activities.payment.PaymentActivity;
-import com.example.techfix_app.adapters.SparePartAdapter;
-import com.google.firebase.firestore.FirebaseFirestore;
+import com.example.techfix_app.firebase.FirestoreManager;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.DocumentSnapshot;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class RepairStatusActivity extends AppCompatActivity {
-    public static boolean isPaymentCompletedLocally = false; // Local Flag for instant status update
 
-    private TextView tvDeviceName, tvStatus, tvTechnician, tvTotalAmount;
-    private RecyclerView rvSpareParts;
+    private TextView tvDeviceName;
+    private TextView tvStatus;
+    private TextView tvTechnician;
+    private TextView tvTotalAmount;
+    private TextView tvRepairDescription;
+    private TextView tvInventoryMessage;
+
+    private LinearLayout layoutRepairInventoryItems;
     private Button btnProceedToPay;
-    private FirebaseFirestore db;
-    private String currentRepairId = "REPAIR_1001";
-    private boolean isAllPartsAvailable = true;
+    private ProgressBar progressBar;
+
+    private FirestoreManager firestoreManager;
+    private String currentRepairId;
+
+    private String currentPaymentStatus = "unpaid";
+    private double currentFinalPrice = 0;
+    private String currentRepairStatus = "";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,136 +50,440 @@ public class RepairStatusActivity extends AppCompatActivity {
         tvStatus = findViewById(R.id.tvStatus);
         tvTechnician = findViewById(R.id.tvTechnician);
         tvTotalAmount = findViewById(R.id.tvTotalAmount);
-        rvSpareParts = findViewById(R.id.rvSpareParts);
-        btnProceedToPay = findViewById(R.id.btnProceedToPay);
+        tvRepairDescription = findViewById(R.id.tvRepairDescription);
+        tvInventoryMessage = findViewById(R.id.tvInventoryMessage);
 
-        if (rvSpareParts != null) {
-            rvSpareParts.setLayoutManager(new LinearLayoutManager(this));
+        layoutRepairInventoryItems =
+                findViewById(R.id.layoutRepairInventoryItems);
+
+        btnProceedToPay = findViewById(R.id.btnProceedToPay);
+        progressBar = findViewById(R.id.progressBar);
+
+        firestoreManager = new FirestoreManager();
+
+        currentRepairId = getIntent().getStringExtra("repairId");
+
+        if (currentRepairId == null ||
+                currentRepairId.trim().isEmpty()) {
+
+            Toast.makeText(
+                    this,
+                    "Repair ID is missing",
+                    Toast.LENGTH_LONG
+            ).show();
+
+            finish();
+            return;
         }
 
-        btnProceedToPay.setOnClickListener(v -> {
-            if (!isAllPartsAvailable) {
-                Toast.makeText(this, "Cannot proceed! Required spare part is Out of Stock.", Toast.LENGTH_LONG).show();
-                return;
-            }
-            openPaymentScreen("All Required Parts");
-        });
+        btnProceedToPay.setEnabled(false);
+
+        btnProceedToPay.setOnClickListener(v -> openPaymentScreen());
+
+        fetchRepairDetails();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        try {
-            db = FirebaseFirestore.getInstance();
+
+        if (firestoreManager != null &&
+                currentRepairId != null) {
             fetchRepairDetails();
-        } catch (Exception e) {
-            loadDefaultData();
         }
     }
 
     private void fetchRepairDetails() {
-        db.collection("repairs").document(currentRepairId).get()
+
+        showLoading(true);
+
+        firestoreManager.getRepair(currentRepairId)
                 .addOnSuccessListener(doc -> {
-                    if (doc.exists()) {
-                        String device = doc.getString("deviceName");
-                        String status = doc.getString("status");
-                        String tech = doc.getString("technicianName");
-                        Double amount = doc.getDouble("totalAmount");
-                        String payStatus = doc.getString("paymentStatus");
 
-                        List<SparePartAdapter.SpareItem> partsList = new ArrayList<>();
-                        List<java.util.Map<String, Object>> partsData = (List<java.util.Map<String, Object>>) doc.get("spareParts");
+                    if (!doc.exists()) {
+                        showLoading(false);
+                        showRepairNotFound();
+                        return;
+                    }
 
-                        if (partsData != null && !partsData.isEmpty()) {
-                            for (java.util.Map<String, Object> item : partsData) {
-                                String name = (String) item.get("name");
-                                Boolean available = (Boolean) item.get("isAvailable");
-                                partsList.add(new SparePartAdapter.SpareItem(
-                                        name != null ? name : "Spare Part",
-                                        available != null ? available : true
-                                ));
-                            }
-                        } else {
-                            partsList.add(new SparePartAdapter.SpareItem("Display Cable", true));
-                            partsList.add(new SparePartAdapter.SpareItem("RAM Module 8GB", true));
+                    loadRepairData(doc);
+                })
+                .addOnFailureListener(e -> {
+                    showLoading(false);
+
+                    Toast.makeText(
+                            this,
+                            "Failed to load repair: " +
+                                    e.getMessage(),
+                            Toast.LENGTH_LONG
+                    ).show();
+                });
+    }
+
+    private void loadRepairData(DocumentSnapshot doc) {
+
+        String deviceName = doc.getString("deviceName");
+        String status = doc.getString("status");
+        String technicianId = doc.getString("technicianId");
+        String description = doc.getString("problemDescription");
+        String serviceId = doc.getString("serviceId");
+        String paymentStatus = doc.getString("paymentStatus");
+
+        Double finalPrice = doc.getDouble("finalPrice");
+
+        currentRepairStatus =
+                status != null ? status : "";
+
+        currentPaymentStatus =
+                paymentStatus != null
+                        ? paymentStatus
+                        : "unpaid";
+
+        currentFinalPrice =
+                finalPrice != null ? finalPrice : 0;
+
+        tvDeviceName.setText(
+                "Device: " +
+                        (deviceName != null
+                                ? deviceName
+                                : "Not specified")
+        );
+
+        tvStatus.setText(
+                "Status: " + formatStatus(currentRepairStatus)
+        );
+
+        tvTechnician.setText(
+                "Technician: " +
+                        (technicianId != null &&
+                                !technicianId.isEmpty()
+                                ? technicianId
+                                : "Not assigned")
+        );
+
+        tvRepairDescription.setText(
+                "Problem: " +
+                        (description != null &&
+                                !description.isEmpty()
+                                ? description
+                                : "No description available")
+        );
+
+        if (finalPrice != null) {
+            tvTotalAmount.setText(
+                    String.format(
+                            "Final Price: Rs. %,.2f",
+                            currentFinalPrice
+                    )
+            );
+        } else {
+            tvTotalAmount.setText(
+                    "Final Price: Not set yet"
+            );
+        }
+
+        updatePaymentButton();
+
+        if (serviceId != null && !serviceId.isEmpty()) {
+            loadServiceInventory(serviceId);
+        } else {
+            showInventoryMessage(
+                    "Service information is unavailable"
+            );
+            showLoading(false);
+        }
+    }
+
+    private void loadServiceInventory(String serviceId) {
+
+        layoutRepairInventoryItems.removeAllViews();
+
+        tvInventoryMessage.setVisibility(View.VISIBLE);
+        tvInventoryMessage.setText("Loading service items...");
+
+        firestoreManager.getService(serviceId)
+                .addOnSuccessListener(serviceDoc -> {
+
+                    if (!serviceDoc.exists()) {
+                        showInventoryMessage("Service not found");
+                        showLoading(false);
+                        return;
+                    }
+
+                    List<String> itemIds =
+                            (List<String>) serviceDoc.get(
+                                    "inventoryItemIds"
+                            );
+
+                    // Support the alternate spelling if that is
+                    // the field name in your Firestore documents.
+                    if (itemIds == null) {
+                        itemIds = (List<String>) serviceDoc.get(
+                                "intentoryItemIds"
+                        );
+                    }
+
+                    if (itemIds == null || itemIds.isEmpty()) {
+                        showInventoryMessage(
+                                "No inventory items linked to this service"
+                        );
+                        showLoading(false);
+                        return;
+                    }
+
+                    tvInventoryMessage.setVisibility(View.GONE);
+
+                    final int totalItems = itemIds.size();
+                    final int[] loadedItems = {0};
+                    final int[] displayedItems = {0};
+
+                    for (String itemId : itemIds) {
+
+                        if (itemId == null ||
+                                itemId.trim().isEmpty()) {
+
+                            loadedItems[0]++;
+                            continue;
                         }
 
-                        boolean isPaid = "Paid".equalsIgnoreCase(payStatus) || isPaymentCompletedLocally;
-                        String displayStatus = isPaid ? "Ready for Delivery (Paid)" : (status != null ? status : "In Progress");
-
-                        setUIData(
-                                device != null ? device : "Sample Laptop",
-                                displayStatus,
-                                tech != null ? tech : "Kamal Perera",
-                                partsList,
-                                amount != null ? amount : 12500.00,
-                                isPaid
+                        loadInventoryItem(
+                                itemId,
+                                totalItems,
+                                loadedItems,
+                                displayedItems
                         );
-                    } else {
-                        loadDefaultData();
+                    }
+
+                    if (totalItems == 0) {
+                        showInventoryMessage(
+                                "No inventory items linked to this service"
+                        );
+                        showLoading(false);
                     }
                 })
-                .addOnFailureListener(e -> loadDefaultData());
+                .addOnFailureListener(e -> {
+                    showInventoryMessage(
+                            "Failed to load service items"
+                    );
+                    showLoading(false);
+                });
     }
 
-    private void loadDefaultData() {
-        List<SparePartAdapter.SpareItem> defaultParts = new ArrayList<>();
-        defaultParts.add(new SparePartAdapter.SpareItem("Display Cable", true));
-        defaultParts.add(new SparePartAdapter.SpareItem("RAM Module 8GB", true));
+    private void loadInventoryItem(
+            String itemId,
+            int totalItems,
+            int[] loadedItems,
+            int[] displayedItems
+    ) {
 
-        String status = isPaymentCompletedLocally ? "Ready for Delivery (Paid)" : "In Progress";
-        setUIData("Sample Laptop", status, "Nimal Perera", defaultParts, 12500.00, isPaymentCompletedLocally);
+        firestoreManager.getInventoryItem(itemId)
+                .addOnSuccessListener(itemDoc -> {
+
+                    if (itemDoc.exists()) {
+
+                        String itemName =
+                                itemDoc.getString("itemName");
+
+                        Double price =
+                                itemDoc.getDouble("price");
+
+                        addInventoryRow(
+                                itemName != null
+                                        ? itemName
+                                        : "Inventory item",
+                                price != null ? price : 0
+                        );
+
+                        displayedItems[0]++;
+                    }
+
+                    loadedItems[0]++;
+
+                    finishInventoryLoading(
+                            totalItems,
+                            loadedItems[0],
+                            displayedItems[0]
+                    );
+                })
+                .addOnFailureListener(e -> {
+
+                    loadedItems[0]++;
+
+                    finishInventoryLoading(
+                            totalItems,
+                            loadedItems[0],
+                            displayedItems[0]
+                    );
+                });
     }
 
-    private void setUIData(String device, String status, String tech, List<SparePartAdapter.SpareItem> partsList, double amount, boolean isPaid) {
-        if (tvDeviceName != null) tvDeviceName.setText("Device: " + device);
-        if (tvStatus != null) {
-            tvStatus.setText("Status: " + status);
-            if (isPaid) {
-                tvStatus.setTextColor(0xFF008800); // Green Color for Paid Status
-            }
-        }
-        if (tvTechnician != null) tvTechnician.setText("Technician: " + tech);
-        if (tvTotalAmount != null) tvTotalAmount.setText(String.format("Total: Rs. %,.2f", amount));
+    private void finishInventoryLoading(
+            int totalItems,
+            int loadedItems,
+            int displayedItems
+    ) {
 
-        this.isAllPartsAvailable = true;
-        for (SparePartAdapter.SpareItem item : partsList) {
-            if (!item.isAvailable) {
-                this.isAllPartsAvailable = false;
-                break;
-            }
-        }
+        if (loadedItems >= totalItems) {
 
-        if (rvSpareParts != null) {
-            SparePartAdapter adapter = new SparePartAdapter(partsList, selectedItem -> {
-                if (isPaid) {
-                    Toast.makeText(this, "Payment already completed for this repair!", Toast.LENGTH_SHORT).show();
-                } else if (selectedItem.isAvailable) {
-                    openPaymentScreen(selectedItem.name);
-                } else {
-                    Toast.makeText(this, selectedItem.name + " is Out of Stock!", Toast.LENGTH_SHORT).show();
-                }
-            });
-            rvSpareParts.setAdapter(adapter);
-        }
-
-        if (btnProceedToPay != null) {
-            if (isPaid) {
-                btnProceedToPay.setEnabled(false);
-                btnProceedToPay.setText("Payment Completed");
-                btnProceedToPay.setAlpha(0.5f);
+            if (displayedItems == 0) {
+                showInventoryMessage(
+                        "No matching inventory items were found"
+                );
             } else {
-                btnProceedToPay.setEnabled(isAllPartsAvailable);
-                btnProceedToPay.setText("Proceed to Payment");
-                btnProceedToPay.setAlpha(isAllPartsAvailable ? 1.0f : 0.5f);
+                tvInventoryMessage.setVisibility(View.GONE);
             }
+
+            showLoading(false);
         }
     }
 
-    private void openPaymentScreen(String itemDetail) {
-        Intent intent = new Intent(RepairStatusActivity.this, PaymentActivity.class);
-        intent.putExtra("REPAIR_ID", currentRepairId);
-        intent.putExtra("SELECTED_ITEM", itemDetail);
+    private void addInventoryRow(
+            String itemName,
+            double price
+    ) {
+
+        View row = LayoutInflater.from(this).inflate(
+                R.layout.item_repair_inventory,
+                layoutRepairInventoryItems,
+                false
+        );
+
+        TextView tvName =
+                row.findViewById(R.id.tvInventoryItemName);
+
+        TextView tvPrice =
+                row.findViewById(R.id.tvInventoryItemPrice);
+
+        tvName.setText(itemName);
+
+        tvPrice.setText(
+                String.format("Rs. %,.2f", price)
+        );
+
+        layoutRepairInventoryItems.addView(row);
+    }
+
+    private void showInventoryMessage(String message) {
+
+        layoutRepairInventoryItems.removeAllViews();
+
+        tvInventoryMessage.setText(message);
+        tvInventoryMessage.setVisibility(View.VISIBLE);
+    }
+
+    private void updatePaymentButton() {
+
+        boolean repairCompleted =
+                "completed".equalsIgnoreCase(
+                        currentRepairStatus
+                );
+
+        boolean paymentCompleted =
+                "paid".equalsIgnoreCase(
+                        currentPaymentStatus
+                );
+
+        boolean priceAvailable = currentFinalPrice > 0;
+
+        if (paymentCompleted) {
+
+            btnProceedToPay.setEnabled(false);
+            btnProceedToPay.setText("Payment Completed");
+
+        } else if (repairCompleted && priceAvailable) {
+
+            btnProceedToPay.setEnabled(true);
+            btnProceedToPay.setText("Proceed to Payment");
+
+        } else if (!repairCompleted) {
+
+            btnProceedToPay.setEnabled(false);
+            btnProceedToPay.setText(
+                    "Payment Available After Completion"
+            );
+
+        } else {
+
+            btnProceedToPay.setEnabled(false);
+            btnProceedToPay.setText(
+                    "Waiting for Final Price"
+            );
+        }
+    }
+
+    private void openPaymentScreen() {
+
+        if (!"completed".equalsIgnoreCase(
+                currentRepairStatus)) {
+
+            Toast.makeText(
+                    this,
+                    "Repair is not completed yet",
+                    Toast.LENGTH_SHORT
+            ).show();
+
+            return;
+        }
+
+        if ("paid".equalsIgnoreCase(currentPaymentStatus)) {
+            Toast.makeText(
+                    this,
+                    "Payment has already been completed",
+                    Toast.LENGTH_SHORT
+            ).show();
+
+            return;
+        }
+
+        if (currentFinalPrice <= 0) {
+            Toast.makeText(
+                    this,
+                    "Final price has not been set",
+                    Toast.LENGTH_SHORT
+            ).show();
+
+            return;
+        }
+
+        Intent intent = new Intent(
+                RepairStatusActivity.this,
+                PaymentActivity.class
+        );
+
+        intent.putExtra("repairId", currentRepairId);
+
         startActivity(intent);
+    }
+
+    private String formatStatus(String status) {
+
+        if (status == null || status.trim().isEmpty()) {
+            return "Unknown";
+        }
+
+        String readable = status.replace("_", " ");
+        return readable.substring(0, 1).toUpperCase()
+                + readable.substring(1);
+    }
+
+    private void showRepairNotFound() {
+
+        tvDeviceName.setText("Repair not found");
+        tvStatus.setText("Status: Unavailable");
+        tvTechnician.setText("Technician: Unavailable");
+        tvRepairDescription.setText("");
+        tvTotalAmount.setText("Final Price: Unavailable");
+
+        btnProceedToPay.setEnabled(false);
+        btnProceedToPay.setText("Payment Unavailable");
+    }
+
+    private void showLoading(boolean isLoading) {
+
+        if (progressBar != null) {
+            progressBar.setVisibility(
+                    isLoading ? View.VISIBLE : View.GONE
+            );
+        }
     }
 }

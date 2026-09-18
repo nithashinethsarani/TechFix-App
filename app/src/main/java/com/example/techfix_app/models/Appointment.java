@@ -1,6 +1,9 @@
 package com.example.techfix_app.models;
 
 import com.google.firebase.firestore.FieldValue;
+import com.google.firebase.firestore.ServerTimestamp;
+
+import java.util.Date;
 
 public class Appointment {
 
@@ -18,7 +21,9 @@ public class Appointment {
     private String problemDescription;
 
     private String status;
-    private FieldValue createdAt;
+
+    @ServerTimestamp
+    private Date createdAt;
 
     public Appointment() {
     }
@@ -36,7 +41,7 @@ public class Appointment {
             String deviceCategory,
             String problemDescription,
             String status,
-            FieldValue createdAt) {
+            Date createdAt) {
 
         this.appointmentId = appointmentId;
         this.customerId = customerId;
@@ -144,11 +149,11 @@ public class Appointment {
         this.status = status;
     }
 
-    public FieldValue getCreatedAt() {
+    public Date getCreatedAt() {
         return createdAt;
     }
 
-    public void setCreatedAt(FieldValue createdAt) {
+    public void setCreatedAt(Date createdAt) {
         this.createdAt = createdAt;
     }
 }

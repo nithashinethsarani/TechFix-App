@@ -37,6 +37,8 @@ import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
@@ -251,7 +253,7 @@ public class AppointmentActivity extends AppCompatActivity {
             return;
         }
 
-        // Fallback: If selectedBranchId is still missing, set it to the first available branch
+        // Fallback: If selectedBranchId is missing, set it to the first available branch
         if ((selectedBranchId == null || selectedBranchId.isEmpty()) && branchList != null && !branchList.isEmpty()) {
             selectedBranchId = branchList.get(0).getBranchId();
         }
@@ -272,31 +274,33 @@ public class AppointmentActivity extends AppCompatActivity {
         }
 
         DocumentReference document = db.collection("appointments").document();
+        String generatedAppointmentId = document.getId();
 
         Appointment appointment = new Appointment();
-        appointment.setAppointmentId(document.getId());
+        appointment.setAppointmentId(generatedAppointmentId);
         appointment.setCustomerId(currentUser.getUid());
         appointment.setCustomerName(name);
         appointment.setServiceId(serviceId);
         appointment.setBranchId(selectedBranchId);
-        appointment.setTechnicianId(null); //TODO: Assign a technician for service
+        appointment.setTechnicianId(null);
         appointment.setAppointmentDate(date);
         appointment.setAppointmentTime(timeSlot);
         appointment.setDeviceCategory(dCat);
         appointment.setDeviceName(dName);
         appointment.setDeviceDescription(dDesc);
         appointment.setStatus("pending");
-        appointment.setCreatedAt(FieldValue.serverTimestamp());
 
         btnSubmitBooking.setEnabled(false);
 
-        firestoreManager.addAppointment(appointment).addOnSuccessListener(unused -> {
-            Toast.makeText(this, "Appointment was made Successfully", Toast.LENGTH_SHORT).show();
-            finish();
-        }).addOnFailureListener(e -> {
-            btnSubmitBooking.setEnabled(true);
-            Toast.makeText(this, "Failed to add Appointment: " + e.getMessage(), Toast.LENGTH_LONG).show();
-        });
+        document.set(appointment)
+                .addOnSuccessListener(unused -> {
+                    Toast.makeText(this, "Appointment created successfully", Toast.LENGTH_SHORT).show();
+                    finish();
+                })
+                .addOnFailureListener(e -> {
+                    btnSubmitBooking.setEnabled(true);
+                    Toast.makeText(this, "Failed to create appointment: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                });
     }
 
     private void loadBranchesFromFirestore() {

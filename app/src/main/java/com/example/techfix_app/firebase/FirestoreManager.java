@@ -6,6 +6,7 @@ import com.example.techfix_app.models.InventoryItem;
 import com.example.techfix_app.models.Technician;
 import com.example.techfix_app.models.Branch;
 import com.example.techfix_app.models.Service;
+import com.example.techfix_app.models.Repair;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
@@ -63,6 +64,23 @@ public class FirestoreManager {
                 .addOnFailureListener(listener::onFailure);
     }
 
+    public interface OnUserNameLoadedListener {
+        void onLoaded(String userName);
+        void onError(Exception e);
+    }
+    public void getAppointmentUserName(String appointmentId, OnUserNameLoadedListener listener) {
+        firestore.collection("appointments").document(appointmentId)
+                .get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (documentSnapshot.exists()) {
+                        String userName = documentSnapshot.getString("customerName");
+                        listener.onLoaded(userName != null ? userName : "Unknown User");
+                    } else {
+                        listener.onLoaded("Customer Name not found");
+                    }
+                })
+                .addOnFailureListener(e -> listener.onError(e));
+    }
 
 
     // Callback interface for user loading
@@ -97,6 +115,8 @@ public class FirestoreManager {
                 })
                 .addOnFailureListener(listener::onFailure);
     }
+
+
 
 
     // BASIC FIRESTORE METHODS
@@ -136,6 +156,9 @@ public class FirestoreManager {
                 .get();
     }
 
+    public Task<DocumentSnapshot> getTechnicianById(String technicianId) {
+        return firestore.collection("technicians").document(technicianId).get();
+    }
 
     // Get all documents in a collection
     public Task<QuerySnapshot> getCollection(
@@ -346,6 +369,15 @@ public class FirestoreManager {
                 .get();
     }
 
+    public Task<QuerySnapshot> getAvailableTechniciansByBranch(
+            String branchId) {
+
+        return firestore.collection("technicians")
+                .whereEqualTo("branchId", branchId)
+                .whereEqualTo("isAvailable", true)
+                .get();
+    }
+
 
     // Add a new technician
     public Task<DocumentReference> addTechnician(
@@ -401,6 +433,25 @@ public class FirestoreManager {
                 .collection("appointments")
                 .get();
     }
+
+    //get appointment
+    public Task<DocumentSnapshot> getAppointment(
+            String appointmentId) {
+
+        return firestore.collection("appointments")
+                .document(appointmentId)
+                .get();
+    }
+
+    //get a customer's appointments
+    public Task<QuerySnapshot> getCustomerAppointments(
+            String customerId) {
+
+        return firestore.collection("appointments")
+                .whereEqualTo("customerId", customerId)
+                .get();
+    }
+
 
 
     // Add a new appointment
@@ -470,6 +521,72 @@ public class FirestoreManager {
                     listener.onSuccess(completedRepairs);
                 })
                 .addOnFailureListener(listener::onFailure);
+    }
+
+    // REPAIRS
+    public Task<DocumentReference> createRepair(Repair repair) {
+
+        DocumentReference document =
+                firestore.collection("repairs").document();
+
+        repair.setRepairId(document.getId());
+
+        return document.set(repair)
+                .continueWith(task -> document);
+    }
+
+    public Task<QuerySnapshot> getAllRepairs() {
+        return firestore.collection("repairs").get();
+    }
+
+    public Task<QuerySnapshot> getActiveRepairs() {
+        return firestore.collection("repairs")
+                .whereIn(
+                        "status",
+                        java.util.Arrays.asList(
+                                "received",
+                                "diagnosing",
+                                "waiting_for_parts",
+                                "repairing",
+                                "ready_for_collection"
+                        )
+                )
+                .get();
+    }
+
+    public Task<DocumentSnapshot> getRepair(String repairId) {
+        return firestore.collection("repairs")
+                .document(repairId)
+                .get();
+    }
+
+    public Task<Void> updateRepair(
+            String repairId,
+            Map<String, Object> updates) {
+
+        return firestore.collection("repairs")
+                .document(repairId)
+                .update(updates);
+    }
+
+    public Task<Void> deleteRepair(String repairId) {
+        return firestore.collection("repairs")
+                .document(repairId)
+                .delete();
+    }
+
+    public Task<QuerySnapshot> getCustomerRepairs(String customerId) {
+        return firestore.collection("repairs")
+                .whereEqualTo("customerId", customerId)
+                .get();
+    }
+
+    public Task<QuerySnapshot> getRepairsByTechnician(
+            String technicianId) {
+
+        return firestore.collection("repairs")
+                .whereEqualTo("technicianId", technicianId)
+                .get();
     }
 
 }
