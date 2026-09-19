@@ -28,6 +28,7 @@ public class RepairStatusActivity extends AppCompatActivity {
 
     private TextView tvDeviceName;
     private TextView tvStatus;
+    private TextView tvPaymentStatus;
     private TextView tvTechnician;
     private TextView tvTotalAmount;
     private TextView tvRepairDescription;
@@ -53,6 +54,7 @@ public class RepairStatusActivity extends AppCompatActivity {
 
         tvDeviceName = findViewById(R.id.tvDeviceName);
         tvStatus = findViewById(R.id.tvStatus);
+        tvPaymentStatus = findViewById(R.id.tvPaymentStatus);
         tvTechnician = findViewById(R.id.tvTechnician);
         tvTotalAmount = findViewById(R.id.tvTotalAmount);
         tvRepairDescription = findViewById(R.id.tvRepairDescription);
@@ -137,6 +139,10 @@ public class RepairStatusActivity extends AppCompatActivity {
 
         tvStatus.setText(
                 "Status: " + formatStatus(currentRepairStatus)
+        );
+
+        tvPaymentStatus.setText(
+                "Payment Status: " +formatStatus(currentPaymentStatus)
         );
 
         if (technicianId != null && !technicianId.trim().isEmpty()) {

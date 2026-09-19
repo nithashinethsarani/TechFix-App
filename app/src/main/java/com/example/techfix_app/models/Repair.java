@@ -21,6 +21,7 @@ public class Repair {
     private String repairNotes;
 
     private String status;
+    private String paymentStatus;
 
     private double finalPrice;
 
@@ -45,6 +46,7 @@ public class Repair {
             String diagnosis,
             String repairNotes,
             String status,
+            String paymentStatus,
             double finalPrice,
             Date createdAt,
             Date updatedAt,
@@ -62,6 +64,7 @@ public class Repair {
         this.diagnosis = diagnosis;
         this.repairNotes = repairNotes;
         this.status = status;
+        this.paymentStatus = paymentStatus;
         this.finalPrice = finalPrice;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
@@ -164,6 +167,13 @@ public class Repair {
         this.status = status;
     }
 
+    public String getPaymentStatus() {
+        return paymentStatus;
+    }
+
+    public void setPaymentStatus(String paymentStatus) {
+        this.paymentStatus = paymentStatus;
+    }
 
     public double getFinalPrice() {
         return finalPrice;

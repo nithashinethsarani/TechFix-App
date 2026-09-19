@@ -100,4 +100,15 @@ public class RepairHistoryDatabaseHelper extends SQLiteOpenHelper {
         db.close();
         return historyList;
     }
+
+    public boolean deleteRepairHistory(String repairId) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        int rowsDeleted = db.delete(
+                TABLE_REPAIR_HISTORY,
+                COLUMN_REPAIR_ID + " = ?",
+                new String[]{repairId}
+        );
+        db.close();
+        return rowsDeleted > 0;
+    }
 }

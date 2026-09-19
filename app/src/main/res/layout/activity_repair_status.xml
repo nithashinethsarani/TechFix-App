@@ -84,6 +84,16 @@
                         android:textStyle="bold" />
 
                     <TextView
+                        android:id="@+id/tvPaymentStatus"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:text="Payment Status: Loading..."
+                        android:textColor="@color/text_white"
+                        android:textSize="15sp"
+                        android:textStyle="bold" />
+
+                    <TextView
                         android:id="@+id/tvTechnician"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"

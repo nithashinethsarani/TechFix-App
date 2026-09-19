@@ -307,6 +307,12 @@ public class FirestoreManager {
         void onFailure(Exception e);
     }
 
+    public Task<DocumentSnapshot> getBranchById(String branchId) {
+        return firestore.collection("branches").document(branchId).get();
+    }
+
+
+
 
     // INVENTORY
 
@@ -638,13 +644,50 @@ public class FirestoreManager {
                         return;
                     }
 
-                    List<String> requiredItemIds =
-                            (List<String>) serviceDoc.get("inventoryItemIds");
+                    Object inventoryObject =
+                            serviceDoc.get("inventoryItemIds");
 
-                    if (requiredItemIds == null || requiredItemIds.isEmpty()) {
+                    // No inventory IDs means no parts are required.
+                    if (inventoryObject == null) {
+                        listener.onResult(
+                                true,
+                                "No inventory required. You can book this service."
+                        );
+                        return;
+                    }
+
+                    if (!(inventoryObject instanceof List)) {
                         listener.onResult(
                                 false,
-                                "This service has no required inventory parts configured."
+                                "Invalid inventory configuration for this service."
+                        );
+                        return;
+                    }
+
+                    List<?> rawItemIds = (List<?>) inventoryObject;
+
+                    // Empty array means the service requires no inventory.
+                    if (rawItemIds.isEmpty()) {
+                        listener.onResult(
+                                true,
+                                "No inventory required. You can book this service."
+                        );
+                        return;
+                    }
+
+                    List<String> requiredItemIds = new ArrayList<>();
+
+                    for (Object item : rawItemIds) {
+                        if (item instanceof String
+                                && !((String) item).trim().isEmpty()) {
+                            requiredItemIds.add(((String) item).trim());
+                        }
+                    }
+
+                    if (requiredItemIds.isEmpty()) {
+                        listener.onResult(
+                                false,
+                                "Invalid inventory item IDs configured for this service."
                         );
                         return;
                     }

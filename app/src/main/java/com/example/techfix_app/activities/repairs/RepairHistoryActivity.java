@@ -18,7 +18,9 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentSnapshot;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class RepairHistoryActivity extends AppCompatActivity {
 
@@ -26,6 +28,9 @@ public class RepairHistoryActivity extends AppCompatActivity {
     private TextView textNoHistory;
     private RepairHistoryDatabaseHelper dbHelper;
     private FirestoreManager firestoreManager;
+
+    private RepairHistoryAdapter adapter;
+    private List<RepairHistory> historyList = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,7 +53,7 @@ public class RepairHistoryActivity extends AppCompatActivity {
     }
 
     private void loadLocalHistory() {
-        List<RepairHistory> historyList = dbHelper.getAllRepairHistory();
+        historyList = dbHelper.getAllRepairHistory();
 
         if (historyList == null || historyList.isEmpty()) {
             textNoHistory.setVisibility(View.VISIBLE);
@@ -57,8 +62,29 @@ public class RepairHistoryActivity extends AppCompatActivity {
             textNoHistory.setVisibility(View.GONE);
             recyclerViewHistory.setVisibility(View.VISIBLE);
 
-            RepairHistoryAdapter adapter = new RepairHistoryAdapter(historyList);
+            // Pass delete listener directly to delete on button click
+            adapter = new RepairHistoryAdapter(historyList, this::deleteRecordDirectly);
             recyclerViewHistory.setAdapter(adapter);
+        }
+    }
+
+    // Direct deletion without confirmation dialog
+    private void deleteRecordDirectly(RepairHistory item, int position) {
+        boolean isDeleted = dbHelper.deleteRepairHistory(item.getRepairId());
+
+        if (isDeleted) {
+            historyList.remove(position);
+            adapter.notifyItemRemoved(position);
+            adapter.notifyItemRangeChanged(position, historyList.size());
+
+            Toast.makeText(this, "Record deleted", Toast.LENGTH_SHORT).show();
+
+            if (historyList.isEmpty()) {
+                textNoHistory.setVisibility(View.VISIBLE);
+                recyclerViewHistory.setVisibility(View.GONE);
+            }
+        } else {
+            Toast.makeText(this, "Failed to delete record", Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -69,25 +95,55 @@ public class RepairHistoryActivity extends AppCompatActivity {
         firestoreManager.getCompletedRepairsForCustomer(currentUser.getUid(), new FirestoreManager.OnCompletedRepairsLoadedListener() {
             @Override
             public void onSuccess(List<DocumentSnapshot> repairDocuments) {
+                if (repairDocuments == null || repairDocuments.isEmpty()) {
+                    loadLocalHistory();
+                    return;
+                }
+
+                final int totalItems = repairDocuments.size();
+                final AtomicInteger processedCount = new AtomicInteger(0);
+
                 for (DocumentSnapshot doc : repairDocuments) {
                     RepairHistory item = new RepairHistory();
                     item.setRepairId(doc.getId());
                     item.setAppointmentId(doc.getString("appointmentId"));
                     item.setDeviceName(doc.getString("deviceName"));
-                    item.setServiceName(doc.getString("serviceName"));
 
                     Double price = doc.getDouble("finalPrice");
                     item.setFinalPrice(price != null ? price : 0.0);
 
-                    item.setCompletedDate(doc.getString("completedDate"));
+                    com.google.firebase.Timestamp timestamp = doc.getTimestamp("completedAt");
+                    if (timestamp != null) {
+                        java.util.Date date = timestamp.toDate();
+                        java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("dd-MM-yyyy | HH:mm", java.util.Locale.getDefault());
+                        item.setCompletedDate(sdf.format(date));
+                    } else {
+                        item.setCompletedDate("N/A");
+                    }
+
                     item.setStatus(doc.getString("status"));
 
-                    // Store into SQLite local database
-                    dbHelper.saveRepairHistory(item);
+                    String serviceId = doc.getString("serviceId");
+                    if (serviceId != null && !serviceId.isEmpty()) {
+                        firestoreManager.getService(serviceId)
+                                .addOnSuccessListener(serviceDoc -> {
+                                    if (serviceDoc.exists()) {
+                                        String serviceName = serviceDoc.getString("name");
+                                        item.setServiceName(serviceName != null ? serviceName : "Unknown Service");
+                                    } else {
+                                        item.setServiceName("Service Not Found");
+                                    }
+                                    saveAndCheckCompletion(item, processedCount, totalItems);
+                                })
+                                .addOnFailureListener(e -> {
+                                    item.setServiceName("Service Unavailable");
+                                    saveAndCheckCompletion(item, processedCount, totalItems);
+                                });
+                    } else {
+                        item.setServiceName("N/A");
+                        saveAndCheckCompletion(item, processedCount, totalItems);
+                    }
                 }
-
-                // Refresh SQLite list UI
-                loadLocalHistory();
             }
 
             @Override
@@ -95,5 +151,13 @@ public class RepairHistoryActivity extends AppCompatActivity {
                 Toast.makeText(RepairHistoryActivity.this, "Failed to sync online history", Toast.LENGTH_SHORT).show();
             }
         });
+    }
+
+    private void saveAndCheckCompletion(RepairHistory item, AtomicInteger processedCount, int totalItems) {
+        dbHelper.saveRepairHistory(item);
+
+        if (processedCount.incrementAndGet() == totalItems) {
+            loadLocalHistory();
+        }
     }
 }

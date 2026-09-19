@@ -90,7 +90,14 @@ public class CustomerRepairsActivity extends AppCompatActivity {
         firestoreManager.getCustomerRepairs(user.getUid())
                 .addOnSuccessListener(querySnapshot -> {
                     repairs.clear();
-                    repairs.addAll(querySnapshot.getDocuments());
+
+                    // Filter out completed repairs
+                    for (DocumentSnapshot doc : querySnapshot.getDocuments()) {
+                        String status = doc.getString("status");
+                        if (!"completed".equalsIgnoreCase(status)) {
+                            repairs.add(doc);
+                        }
+                    }
 
                     adapter.notifyDataSetChanged();
 
@@ -99,7 +106,7 @@ public class CustomerRepairsActivity extends AppCompatActivity {
                     if (repairs.isEmpty()) {
                         rvRepairHistory.setVisibility(View.GONE);
                         tvMessage.setText(
-                                "You don't have any repairs yet."
+                                "You don't have any active repairs yet."
                         );
                         tvMessage.setVisibility(View.VISIBLE);
                     } else {

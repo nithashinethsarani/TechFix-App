@@ -3,6 +3,7 @@ package com.example.techfix_app.adapters;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -17,9 +18,15 @@ import java.util.Locale;
 public class RepairHistoryAdapter extends RecyclerView.Adapter<RepairHistoryAdapter.ViewHolder> {
 
     private final List<RepairHistory> repairHistoryList;
+    private final OnItemDeleteListener deleteListener;
 
-    public RepairHistoryAdapter(List<RepairHistory> repairHistoryList) {
+    public interface OnItemDeleteListener {
+        void onItemDelete(RepairHistory item, int position);
+    }
+
+    public RepairHistoryAdapter(List<RepairHistory> repairHistoryList, OnItemDeleteListener deleteListener) {
         this.repairHistoryList = repairHistoryList;
+        this.deleteListener = deleteListener;
     }
 
     @NonNull
@@ -45,6 +52,13 @@ public class RepairHistoryAdapter extends RecyclerView.Adapter<RepairHistoryAdap
 
         // Display status
         holder.textStatus.setText(item.getStatus() != null ? item.getStatus() : "Completed");
+
+        // Direct delete action when clicking the X icon
+        holder.btnDelete.setOnClickListener(v -> {
+            if (deleteListener != null) {
+                deleteListener.onItemDelete(item, holder.getAdapterPosition());
+            }
+        });
     }
 
     @Override
@@ -59,6 +73,7 @@ public class RepairHistoryAdapter extends RecyclerView.Adapter<RepairHistoryAdap
         TextView textPrice;
         TextView textCompletedDate;
         TextView textStatus;
+        ImageView btnDelete;
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -67,6 +82,7 @@ public class RepairHistoryAdapter extends RecyclerView.Adapter<RepairHistoryAdap
             textPrice = itemView.findViewById(R.id.textPrice);
             textCompletedDate = itemView.findViewById(R.id.textCompletedDate);
             textStatus = itemView.findViewById(R.id.textStatus);
+            btnDelete = itemView.findViewById(R.id.btnDelete);
         }
     }
 }
