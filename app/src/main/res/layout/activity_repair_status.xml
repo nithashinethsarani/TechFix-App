@@ -213,6 +213,21 @@
             android:textStyle="bold"
             app:cornerRadius="12dp" />
 
+        <Button
+            android:id="@+id/btnViewRepairImages"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:layout_marginTop="10dp"
+            android:backgroundTint="@color/text_white"
+            android:enabled="true"
+            android:text="View Repair Images"
+            android:textColor="#0D1B3E"
+            android:textSize="15sp"
+            android:textStyle="bold"
+            app:cornerRadius="12dp" />
+
+
+
     </LinearLayout>
 
 </RelativeLayout>

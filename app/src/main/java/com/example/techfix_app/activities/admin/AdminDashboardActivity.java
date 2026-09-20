@@ -35,7 +35,6 @@ public class AdminDashboardActivity extends AppCompatActivity {
         llServiceManagement = findViewById(R.id.llServiceManagement);
         llTechnicianManagement = findViewById(R.id.llTechnicianManagement);
         llInventoryManagement = findViewById(R.id.llInventoryManagement);
-        llRepairImages = findViewById(R.id.llRepairImages);
         llAppointmentManagement = findViewById(R.id.llAppointmentManagement);
 
         tvProfile.setOnClickListener(view ->
@@ -55,9 +54,6 @@ public class AdminDashboardActivity extends AppCompatActivity {
 
         llInventoryManagement.setOnClickListener(v ->
                 startActivity(new Intent(AdminDashboardActivity.this, InventoryManagementActivity.class)));
-
-        llRepairImages.setOnClickListener(v ->
-                startActivity(new Intent(AdminDashboardActivity.this, UploadRepairImageActivity.class)));
 
         llServiceManagement.setOnClickListener(v ->
                 startActivity(new Intent(AdminDashboardActivity.this, ServiceManagementActivity.class)));

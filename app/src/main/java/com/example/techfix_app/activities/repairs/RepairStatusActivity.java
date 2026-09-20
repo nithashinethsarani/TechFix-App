@@ -37,6 +37,7 @@ public class RepairStatusActivity extends AppCompatActivity {
     private LinearLayout layoutRepairInventoryItems;
     private Button btnProceedToPay;
     private Button btnCancelRepair;
+    private Button btnViewRepairImages;
     private ProgressBar progressBar;
 
     private FirestoreManager firestoreManager;
@@ -63,6 +64,20 @@ public class RepairStatusActivity extends AppCompatActivity {
         layoutRepairInventoryItems = findViewById(R.id.layoutRepairInventoryItems);
         btnProceedToPay = findViewById(R.id.btnProceedToPay);
         btnCancelRepair = findViewById(R.id.btnCancelRepair);
+
+        btnViewRepairImages = findViewById(R.id.btnViewRepairImages);
+
+        btnViewRepairImages.setOnClickListener(v -> {
+            Intent intent = new Intent(
+                    this,
+                    CustomerRepairImagesActivity.class
+            );
+
+            intent.putExtra("repairId", currentRepairId);
+
+            startActivity(intent);
+        });
+
         progressBar = findViewById(R.id.progressBar);
 
         firestoreManager = new FirestoreManager();

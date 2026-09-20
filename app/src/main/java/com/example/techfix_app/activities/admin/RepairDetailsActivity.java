@@ -1,5 +1,6 @@
 package com.example.techfix_app.activities.admin;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.View;
@@ -14,6 +15,7 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.techfix_app.R;
+import com.example.techfix_app.activities.repairs.CustomerRepairImagesActivity;
 import com.example.techfix_app.firebase.FirestoreManager;
 import com.example.techfix_app.models.Repair;
 
@@ -41,6 +43,9 @@ public class RepairDetailsActivity extends AppCompatActivity {
     private Button btnSave;
 
     private Button btnDelete;
+    private Button btnUploadRepairImage;
+    private Button btnViewRepairImages;
+
 
     private ProgressBar progressBar;
 
@@ -99,6 +104,8 @@ public class RepairDetailsActivity extends AppCompatActivity {
         spinnerStatus = findViewById(R.id.spinnerStatus);
 
         btnSave = findViewById(R.id.btnSave);
+        btnUploadRepairImage = findViewById(R.id.btnUploadRepairImage);
+        btnViewRepairImages = findViewById(R.id.btnViewRepairImages);
         btnDelete = findViewById(R.id.btnDelete);
 
         progressBar = findViewById(R.id.progressBar);
@@ -132,6 +139,40 @@ public class RepairDetailsActivity extends AppCompatActivity {
         btnSave.setOnClickListener(
                 v -> saveRepair()
         );
+
+        btnViewRepairImages.setOnClickListener(v -> {
+            Intent intent = new Intent(
+                    this,
+                    CustomerRepairImagesActivity.class
+            );
+
+            intent.putExtra("repairId", repairId);
+
+            startActivity(intent);
+        });
+
+
+        btnUploadRepairImage.setOnClickListener(v -> {
+            if (repair == null || repair.getRepairId() == null) {
+                Toast.makeText(
+                        RepairDetailsActivity.this,
+                        "Repair details are not loaded yet",
+                        Toast.LENGTH_SHORT
+                ).show();
+                return;
+            }
+
+            Intent intent = new Intent(
+                    RepairDetailsActivity.this,
+                    UploadRepairImageActivity.class
+            );
+
+            intent.putExtra("repairId", repair.getRepairId());
+            intent.putExtra("branchId", repair.getBranchId());
+            intent.putExtra("deviceCategory", repair.getDeviceCategory());
+
+            startActivity(intent);
+        });
 
         btnDelete.setOnClickListener(
                 v ->

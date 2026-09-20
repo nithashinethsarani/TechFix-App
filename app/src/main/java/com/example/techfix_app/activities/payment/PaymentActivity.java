@@ -1,4 +1,3 @@
-
 package com.example.techfix_app.activities.payment;
 
 import android.os.Bundle;
@@ -16,6 +15,7 @@ import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.text.NumberFormat;
+import java.util.Calendar;
 import java.util.Locale;
 
 public class PaymentActivity extends AppCompatActivity {
@@ -42,7 +42,6 @@ public class PaymentActivity extends AppCompatActivity {
         etCVV = findViewById(R.id.etCVV);
         btnPayNow = findViewById(R.id.btnPayNow);
 
-        // Add this TextView to your XML in section 2 below.
         tvPaymentAmount = findViewById(R.id.tvPaymentAmount);
 
         db = FirebaseFirestore.getInstance();
@@ -168,16 +167,10 @@ public class PaymentActivity extends AppCompatActivity {
             return;
         }
 
-        /*
-         * Coursework dummy payment:
-         * Card details are validated locally but are not saved
-         * or sent to Firebase.
-         */
         isProcessing = true;
         btnPayNow.setEnabled(false);
         btnPayNow.setText("Processing...");
 
-        // Recheck the latest repair status before marking as paid.
         db.collection("repairs")
                 .document(repairId)
                 .get()
@@ -239,8 +232,6 @@ public class PaymentActivity extends AppCompatActivity {
                             "Dummy payment successful!",
                             Toast.LENGTH_LONG).show();
 
-                    // Returning to RepairStatusActivity lets it reload
-                    // the updated paymentStatus from Firestore.
                     finish();
                 })
                 .addOnFailureListener(e ->
@@ -256,25 +247,37 @@ public class PaymentActivity extends AppCompatActivity {
     }
 
     private boolean isValidExpiry(String expiry) {
-        if (!expiry.matches("\\d{2}/\\d{2}")) {
+        if (expiry == null) {
             return false;
         }
 
-        String[] parts = expiry.split("/");
-        int month = Integer.parseInt(parts[0]);
-        int year = Integer.parseInt(parts[1]);
+        // Clean digits only
+        String digitsOnly = expiry.replaceAll("\\D", "");
 
-        if (month < 1 || month > 12) {
+        if (digitsOnly.length() != 4) {
             return false;
         }
 
-        java.util.Calendar now = java.util.Calendar.getInstance();
+        try {
+            int month = Integer.parseInt(digitsOnly.substring(0, 2));
+            int year = Integer.parseInt(digitsOnly.substring(2, 4));
 
-        int currentYear = now.get(java.util.Calendar.YEAR) % 100;
-        int currentMonth = now.get(java.util.Calendar.MONTH) + 1;
+            if (month < 1 || month > 12) {
+                return false;
+            }
 
-        return year > currentYear
-                || (year == currentYear && month >= currentMonth);
+            Calendar now = Calendar.getInstance();
+            int currentYear = now.get(Calendar.YEAR) % 100; // e.g. 26
+            int currentMonth = now.get(Calendar.MONTH) + 1; // 1-12
+
+            if (year < currentYear) {
+                return false;
+            }
+
+            return year > currentYear || month >= currentMonth;
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     private void setupCardNumberFormatter() {
@@ -321,37 +324,46 @@ public class PaymentActivity extends AppCompatActivity {
 
     private void setupExpiryFormatter() {
         etExpiry.addTextChangedListener(new TextWatcher() {
-            private boolean updating;
+            private boolean isUpdating = false;
 
             @Override
-            public void beforeTextChanged(
-                    CharSequence s, int start, int count, int after) {}
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
 
             @Override
-            public void onTextChanged(
-                    CharSequence s, int start, int before, int count) {}
+            public void onTextChanged(CharSequence s, int start, int before, int count) {}
 
             @Override
-            public void afterTextChanged(Editable editable) {
-                if (updating) return;
+            public void afterTextChanged(Editable s) {
+                if (isUpdating) {
+                    return;
+                }
 
-                updating = true;
+                isUpdating = true;
 
-                String digits = editable.toString()
-                        .replaceAll("\\D", "");
+                // Clear error automatically as the user types
+                etExpiry.setError(null);
+
+                String digits = s.toString().replaceAll("\\D", "");
 
                 if (digits.length() > 4) {
                     digits = digits.substring(0, 4);
                 }
 
-                String formatted = digits.length() > 2
-                        ? digits.substring(0, 2) + "/" + digits.substring(2)
-                        : digits;
+                StringBuilder formatted = new StringBuilder();
 
-                editable.replace(0, editable.length(), formatted);
-                etExpiry.setSelection(editable.length());
+                if (digits.length() >= 2) {
+                    formatted.append(digits.substring(0, 2)).append("/");
+                    if (digits.length() > 2) {
+                        formatted.append(digits.substring(2));
+                    }
+                } else {
+                    formatted.append(digits);
+                }
 
-                updating = false;
+                s.replace(0, s.length(), formatted.toString());
+                etExpiry.setSelection(s.length());
+
+                isUpdating = false;
             }
         });
     }

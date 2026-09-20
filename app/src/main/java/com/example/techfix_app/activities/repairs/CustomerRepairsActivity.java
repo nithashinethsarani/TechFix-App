@@ -93,8 +93,8 @@ public class CustomerRepairsActivity extends AppCompatActivity {
 
                     // Filter out completed repairs
                     for (DocumentSnapshot doc : querySnapshot.getDocuments()) {
-                        String status = doc.getString("status");
-                        if (!"completed".equalsIgnoreCase(status)) {
+                        String paymentStatus = doc.getString("paymentStatus");
+                        if (!"paid".equalsIgnoreCase(paymentStatus)) {
                             repairs.add(doc);
                         }
                     }

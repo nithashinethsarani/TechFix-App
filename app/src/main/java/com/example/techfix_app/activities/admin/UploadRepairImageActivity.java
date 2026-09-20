@@ -1,10 +1,14 @@
+
 package com.example.techfix_app.activities.admin;
 
+import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.provider.MediaStore;
+import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
@@ -12,8 +16,9 @@ import android.widget.ImageView;
 import android.widget.Spinner;
 import android.widget.Toast;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
 
@@ -33,172 +38,335 @@ import java.util.Locale;
 
 public class UploadRepairImageActivity extends AppCompatActivity {
 
-    private static final int CAMERA_PERMISSION_CODE = 100;
-    private static final int CAMERA_REQUEST_CODE = 200;
-
     private ImageView imgPreview;
     private EditText etCaption;
-    private Spinner spinnerBranch, spinnerCategory;
-    private Button btnCapture, btnUpload;
+    private Spinner spinnerBranch;
+    private Spinner spinnerCategory;
+    private Button btnCapture;
+    private Button btnUpload;
 
     private RepairImageDatabaseHelper dbHelper;
     private FirestoreManager firestoreManager;
 
     private Uri photoUri;
     private String currentPhotoPath;
-    private List<Branch> branchList = new ArrayList<>();
+
+    private String repairId;
+    private String repairBranchId;
+    private String repairDeviceCategory;
+
+    private final List<Branch> branchList = new ArrayList<>();
+
+    private ArrayAdapter<String> branchAdapter;
+
+    private final String[] categories = {
+            "Laptop",
+            "Mobile Phone",
+            "Desktop",
+            "Tablet",
+            "Other"
+    };
+
+    private final ActivityResultLauncher<String> cameraPermissionLauncher =
+            registerForActivityResult(
+                    new ActivityResultContracts.RequestPermission(),
+                    granted -> {
+                        if (granted) {
+                            openCamera();
+                        } else {
+                            Toast.makeText(
+                                    this,
+                                    "Camera permission is required",
+                                    Toast.LENGTH_SHORT
+                            ).show();
+                        }
+                    }
+            );
+
+    private final ActivityResultLauncher<Intent> cameraLauncher =
+            registerForActivityResult(
+                    new ActivityResultContracts.StartActivityForResult(),
+                    result -> {
+                        if (result.getResultCode() == RESULT_OK) {
+                            if (photoUri != null && currentPhotoPath != null) {
+                                imgPreview.setImageURI(photoUri);
+                            } else {
+                                Toast.makeText(
+                                        this,
+                                        "Could not load captured image",
+                                        Toast.LENGTH_SHORT
+                                ).show();
+                            }
+                        } else {
+                            deleteTemporaryPhoto();
+
+                            Toast.makeText(
+                                    this,
+                                    "Image capture cancelled",
+                                    Toast.LENGTH_SHORT
+                            ).show();
+                        }
+                    }
+            );
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_upload_repair_image);
 
-        imgPreview = findViewById(R.id.imgPreview);
-        etCaption = findViewById(R.id.etCaption);
-        spinnerBranch = findViewById(R.id.spinnerUploadBranch);
-        spinnerCategory = findViewById(R.id.spinnerCategory);
-        btnCapture = findViewById(R.id.btnCapture);
-        btnUpload = findViewById(R.id.btnUpload);
+        repairId = getIntent().getStringExtra("repairId");
+        repairBranchId = getIntent().getStringExtra("branchId");
+        repairDeviceCategory = getIntent().getStringExtra("deviceCategory");
+
+        if (repairId == null || repairId.trim().isEmpty()) {
+            Toast.makeText(this, "Invalid repair ID", Toast.LENGTH_SHORT).show();
+            finish();
+            return;
+        }
+
+        initializeViews();
 
         dbHelper = new RepairImageDatabaseHelper(this);
         firestoreManager = new FirestoreManager();
 
         setupCategorySpinner();
+        setupBranchSpinner();
         loadBranchesFromFirestore();
 
         btnCapture.setOnClickListener(v -> checkCameraPermissionAndOpen());
         btnUpload.setOnClickListener(v -> saveImage());
     }
 
+    private void initializeViews() {
+        imgPreview = findViewById(R.id.imgPreview);
+        etCaption = findViewById(R.id.etCaption);
+        spinnerBranch = findViewById(R.id.spinnerUploadBranch);
+        spinnerCategory = findViewById(R.id.spinnerCategory);
+        btnCapture = findViewById(R.id.btnCapture);
+        btnUpload = findViewById(R.id.btnUpload);
+    }
+
     private void setupCategorySpinner() {
-        String[] categories = {"Laptop", "Mobile Phone", "Desktop", "Tablet", "Other"};
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(this,
-                android.R.layout.simple_spinner_item, categories);
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(
+                this,
+                android.R.layout.simple_spinner_item,
+                categories
+        );
+
+        adapter.setDropDownViewResource(
+                android.R.layout.simple_spinner_dropdown_item
+        );
+
         spinnerCategory.setAdapter(adapter);
-    }
 
-    private void loadBranchesFromFirestore() {
-        firestoreManager.getAllBranches(new FirestoreManager.OnBranchesLoadedListener() {
-            @Override
-            public void onSuccess(List<Branch> branches) {
-                branchList.clear();
-                branchList.addAll(branches);
+        if (repairDeviceCategory != null) {
+            int position = adapter.getPosition(repairDeviceCategory);
 
-                List<String> names = new ArrayList<>();
-                for (Branch b : branchList) {
-                    names.add(b.getName());
-                }
-
-                ArrayAdapter<String> adapter = new ArrayAdapter<>(UploadRepairImageActivity.this,
-                        android.R.layout.simple_spinner_item, names);
-                adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-                spinnerBranch.setAdapter(adapter);
+            if (position >= 0) {
+                spinnerCategory.setSelection(position);
             }
-
-            @Override
-            public void onFailure(Exception e) {
-                Toast.makeText(UploadRepairImageActivity.this,
-                        "Failed to load branches: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-            }
-        });
-    }
-
-    private void checkCameraPermissionAndOpen() {
-        if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.CAMERA)
-                != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this,
-                    new String[]{android.Manifest.permission.CAMERA}, CAMERA_PERMISSION_CODE);
-        } else {
-            openCamera();
         }
     }
 
-    @Override
-    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == CAMERA_PERMISSION_CODE) {
-            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                openCamera();
-            } else {
-                Toast.makeText(this, "Camera permission is required", Toast.LENGTH_SHORT).show();
+    private void setupBranchSpinner() {
+        branchAdapter = new ArrayAdapter<>(
+                this,
+                android.R.layout.simple_spinner_item,
+                new ArrayList<>()
+        );
+
+        branchAdapter.setDropDownViewResource(
+                android.R.layout.simple_spinner_dropdown_item
+        );
+
+        spinnerBranch.setAdapter(branchAdapter);
+    }
+
+    private void loadBranchesFromFirestore() {
+        firestoreManager.getAllBranches(
+                new FirestoreManager.OnBranchesLoadedListener() {
+                    @Override
+                    public void onSuccess(List<Branch> branches) {
+                        branchList.clear();
+
+                        if (branches != null) {
+                            branchList.addAll(branches);
+                        }
+
+                        List<String> branchNames = new ArrayList<>();
+
+                        for (Branch branch : branchList) {
+                            branchNames.add(
+                                    branch.getName() == null
+                                            ? "Unnamed branch"
+                                            : branch.getName()
+                            );
+                        }
+
+                        branchAdapter.clear();
+                        branchAdapter.addAll(branchNames);
+                        branchAdapter.notifyDataSetChanged();
+
+                        selectRepairBranch();
+                    }
+
+                    @Override
+                    public void onFailure(Exception e) {
+                        Toast.makeText(
+                                UploadRepairImageActivity.this,
+                                "Failed to load branches: " + e.getMessage(),
+                                Toast.LENGTH_LONG
+                        ).show();
+                    }
+                }
+        );
+    }
+
+    private void selectRepairBranch() {
+        if (repairBranchId == null) {
+            return;
+        }
+
+        for (int i = 0; i < branchList.size(); i++) {
+            String branchId = branchList.get(i).getBranchId();
+
+            if (repairBranchId.equals(branchId)) {
+                spinnerBranch.setSelection(i);
+                return;
             }
+        }
+    }
+
+    private void checkCameraPermissionAndOpen() {
+        if (ContextCompat.checkSelfPermission(
+                this,
+                Manifest.permission.CAMERA
+        ) == PackageManager.PERMISSION_GRANTED) {
+            openCamera();
+        } else {
+            cameraPermissionLauncher.launch(Manifest.permission.CAMERA);
         }
     }
 
     private void openCamera() {
-        Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
 
-        File photoFile = null;
-        try {
-            photoFile = createImageFile();
-        } catch (IOException e) {
-            Toast.makeText(this, "Error creating file: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+        if (cameraIntent.resolveActivity(getPackageManager()) == null) {
+            Toast.makeText(
+                    this,
+                    "No camera application found",
+                    Toast.LENGTH_SHORT
+            ).show();
             return;
         }
 
-        if (photoFile != null) {
+        try {
+            File photoFile = createImageFile();
+
             photoUri = FileProvider.getUriForFile(
                     this,
-                    getApplicationContext().getPackageName() + ".fileprovider",
+                    getPackageName() + ".fileprovider",
                     photoFile
             );
 
-            takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoUri);
+            cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoUri);
 
-            // Grant URI permissions for security on newer Android versions
-            takePictureIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+            cameraIntent.addFlags(
+                    Intent.FLAG_GRANT_READ_URI_PERMISSION
+                            | Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+            );
 
-            try {
-                startActivityForResult(takePictureIntent, CAMERA_REQUEST_CODE);
-            } catch (Exception e) {
-                Toast.makeText(this, "No camera application found", Toast.LENGTH_SHORT).show();
-            }
+            cameraLauncher.launch(cameraIntent);
+
+        } catch (IOException e) {
+            Toast.makeText(
+                    this,
+                    "Could not create image file: " + e.getMessage(),
+                    Toast.LENGTH_LONG
+            ).show();
         }
     }
 
     private File createImageFile() throws IOException {
-        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date());
-        String imageFileName = "REPAIR_" + timeStamp;
-        File storageDir = getExternalFilesDir(android.os.Environment.DIRECTORY_PICTURES);
-        File image = File.createTempFile(imageFileName, ".jpg", storageDir);
-        currentPhotoPath = image.getAbsolutePath();
-        return image;
-    }
+        String timestamp = new SimpleDateFormat(
+                "yyyyMMdd_HHmmss",
+                Locale.getDefault()
+        ).format(new Date());
 
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == CAMERA_REQUEST_CODE && resultCode == RESULT_OK) {
-            imgPreview.setImageURI(photoUri);
+        File storageDir = getExternalFilesDir(
+                Environment.DIRECTORY_PICTURES
+        );
+
+        if (storageDir == null) {
+            throw new IOException("Picture storage is unavailable");
         }
+
+        if (!storageDir.exists() && !storageDir.mkdirs()) {
+            throw new IOException("Could not create picture folder");
+        }
+
+        File image = File.createTempFile(
+                "REPAIR_" + timestamp + "_",
+                ".jpg",
+                storageDir
+        );
+
+        currentPhotoPath = image.getAbsolutePath();
+
+        return image;
     }
 
     private void saveImage() {
         if (photoUri == null || currentPhotoPath == null) {
-            Toast.makeText(this, "Please capture an image first", Toast.LENGTH_SHORT).show();
+            Toast.makeText(
+                    this,
+                    "Please capture an image first",
+                    Toast.LENGTH_SHORT
+            ).show();
             return;
         }
-        if (branchList.isEmpty()) {
-            Toast.makeText(this, "No branches available", Toast.LENGTH_SHORT).show();
+
+        File imageFile = new File(currentPhotoPath);
+
+        if (!imageFile.exists() || imageFile.length() == 0) {
+            Toast.makeText(
+                    this,
+                    "Captured image file is missing or empty",
+                    Toast.LENGTH_SHORT
+            ).show();
+            return;
+        }
+
+        if (branchList.isEmpty()
+                || spinnerBranch.getSelectedItemPosition() < 0) {
+            Toast.makeText(
+                    this,
+                    "Please select a valid branch",
+                    Toast.LENGTH_SHORT
+            ).show();
+            return;
+        }
+
+        Branch selectedBranch = branchList.get(
+                spinnerBranch.getSelectedItemPosition()
+        );
+
+        String branchId = selectedBranch.getBranchId();
+
+        if (branchId == null || branchId.trim().isEmpty()) {
+            Toast.makeText(
+                    this,
+                    "Selected branch has an invalid ID",
+                    Toast.LENGTH_SHORT
+            ).show();
             return;
         }
 
         String caption = etCaption.getText().toString().trim();
         String deviceCategory = spinnerCategory.getSelectedItem().toString();
-        Branch selectedBranch = branchList.get(spinnerBranch.getSelectedItemPosition());
 
-        int branchId = 0;
-        try {
-            // Parses numerical branchId if Branch model stores branchId as String
-            branchId = Integer.parseInt(selectedBranch.getBranchId());
-        } catch (NumberFormatException e) {
-            // Uses position + 1 if branchId string is non-numeric
-            branchId = spinnerBranch.getSelectedItemPosition() + 1;
-        }
-
-        // Instantiates RepairImage using updated constructor
         RepairImage repairImage = new RepairImage(
+                repairId,
                 branchId,
                 deviceCategory,
                 currentPhotoPath,
@@ -206,12 +374,49 @@ public class UploadRepairImageActivity extends AppCompatActivity {
                 System.currentTimeMillis()
         );
 
+        btnUpload.setEnabled(false);
+
         long newId = dbHelper.addImage(repairImage);
+
+        btnUpload.setEnabled(true);
+
         if (newId != -1) {
-            Toast.makeText(this, "Image saved", Toast.LENGTH_SHORT).show();
+            Toast.makeText(
+                    this,
+                    "Repair image saved locally",
+                    Toast.LENGTH_SHORT
+            ).show();
+
             finish();
         } else {
-            Toast.makeText(this, "Failed to save image", Toast.LENGTH_SHORT).show();
+            Toast.makeText(
+                    this,
+                    "Failed to save image",
+                    Toast.LENGTH_SHORT
+            ).show();
         }
+    }
+
+    private void deleteTemporaryPhoto() {
+        if (currentPhotoPath != null) {
+            File file = new File(currentPhotoPath);
+
+            if (file.exists()) {
+                file.delete();
+            }
+        }
+
+        photoUri = null;
+        currentPhotoPath = null;
+        imgPreview.setImageDrawable(null);
+    }
+
+    @Override
+    protected void onDestroy() {
+        if (dbHelper != null) {
+            dbHelper.close();
+        }
+
+        super.onDestroy();
     }
 }

@@ -138,6 +138,20 @@
             android:text="Save Repair" />
 
         <Button
+            android:id="@+id/btnUploadRepairImage"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:text="Upload Image" />
+
+        <Button
+            android:id="@+id/btnViewRepairImages"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:text="Upload Image" />
+
+        <Button
             android:id="@+id/btnDelete"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
