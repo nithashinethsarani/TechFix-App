@@ -30,6 +30,8 @@ public class RepairDetailsActivity extends AppCompatActivity {
     private TextView tvServiceId;
     private TextView tvBranchId;
     private TextView tvTechnicianId;
+    private TextView tvCurrentStatus;
+    private TextView tvCurrentPaymentStatus;
     private TextView tvDevice;
     private TextView tvDeviceCategory;
     private TextView tvProblem;
@@ -39,6 +41,7 @@ public class RepairDetailsActivity extends AppCompatActivity {
     private EditText etFinalPrice;
 
     private Spinner spinnerStatus;
+    private Spinner spinnerPaymentStatus;
 
     private Button btnSave;
 
@@ -92,6 +95,8 @@ public class RepairDetailsActivity extends AppCompatActivity {
         tvServiceId = findViewById(R.id.tvServiceId);
         tvBranchId = findViewById(R.id.tvBranchId);
         tvTechnicianId = findViewById(R.id.tvTechnicianId);
+        tvCurrentStatus = findViewById(R.id.tvCurrentStatus);
+        tvCurrentPaymentStatus = findViewById(R.id.tvCurrentPaymentStatus);
 
         tvDevice = findViewById(R.id.tvDevice);
         tvDeviceCategory = findViewById(R.id.tvDeviceCategory);
@@ -277,6 +282,14 @@ public class RepairDetailsActivity extends AppCompatActivity {
 
         tvTechnicianId.setText(
                 "Technician ID: " + safe(repair.getTechnicianId())
+        );
+
+        tvCurrentStatus.setText(
+                "Status: " + safe(repair.getStatus())
+        );
+
+        tvCurrentPaymentStatus.setText(
+                "Payment Status: " + safe(repair.getPaymentStatus())
         );
 
         tvDevice.setText(

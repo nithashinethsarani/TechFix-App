@@ -73,7 +73,7 @@ public class RepairManagementActivity extends AppCompatActivity {
         progressBar.setVisibility(View.VISIBLE);
         tvNoRepairs.setVisibility(View.GONE);
 
-        firestoreManager.getActiveRepairs()
+        firestoreManager.getAllRepairs()
                 .addOnSuccessListener(querySnapshot -> {
 
                     repairList.clear();

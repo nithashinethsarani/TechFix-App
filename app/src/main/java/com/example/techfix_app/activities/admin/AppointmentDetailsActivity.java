@@ -386,6 +386,7 @@ public class AppointmentDetailsActivity extends AppCompatActivity {
                     repair.setDeviceName(appointment.getDeviceName());
                     repair.setDeviceDescription(appointment.getDeviceDescription());
                     repair.setStatus("received");
+                    repair.setPaymentStatus("unpaid");
 
                     firestoreManager.createRepair(repair)
                             .addOnSuccessListener(unused -> {

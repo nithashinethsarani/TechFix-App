@@ -51,6 +51,18 @@
             android:text="Technician ID" />
 
         <TextView
+            android:id="@+id/tvCurrentStatus"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Status" />
+
+        <TextView
+            android:id="@+id/tvCurrentPaymentStatus"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="PaymentStatus" />
+
+        <TextView
             android:id="@+id/tvDevice"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -122,7 +134,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:text="Repair Status"
+            android:text="Change Status"
             android:textStyle="bold" />
 
         <Spinner

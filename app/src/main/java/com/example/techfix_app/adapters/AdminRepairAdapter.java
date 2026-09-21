@@ -86,6 +86,10 @@ public class AdminRepairAdapter
                 "Status: " + formatStatus(repair.getStatus())
         );
 
+        holder.tvPaymentStatus.setText(
+                "Payment Status: " + formatStatus(repair.getPaymentStatus())
+        );
+
         holder.tvPrice.setText(
                 String.format(
                         Locale.getDefault(),
@@ -124,6 +128,7 @@ public class AdminRepairAdapter
         TextView tvDevice;
         TextView tvCategory;
         TextView tvStatus;
+        TextView tvPaymentStatus;
         TextView tvPrice;
 
         public RepairViewHolder(@NonNull View itemView) {
@@ -140,6 +145,9 @@ public class AdminRepairAdapter
 
             tvStatus =
                     itemView.findViewById(R.id.tvStatus);
+
+            tvPaymentStatus =
+                    itemView.findViewById(R.id.tvPaymentStatus);
 
             tvPrice =
                     itemView.findViewById(R.id.tvPrice);
