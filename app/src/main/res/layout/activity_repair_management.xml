@@ -3,7 +3,8 @@
 <RelativeLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="@color/dark_blue">
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerViewRepairs"
@@ -26,6 +27,7 @@
         android:gravity="center"
         android:text="No active repairs"
         android:textSize="18sp"
+        android:textColor="@color/text_secondary"
         android:visibility="gone" />
 
 </RelativeLayout>
