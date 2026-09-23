@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
+
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
@@ -6,48 +7,69 @@
     android:orientation="vertical"
     android:padding="12dp"
     android:layout_marginBottom="16dp"
-    android:background="#F3F3F3">
+    android:background="@color/dark_blue">
 
-    <ImageView
-        android:id="@+id/imgRepairImage"
-        android:layout_width="match_parent"
-        android:layout_height="220dp"
-        android:scaleType="fitCenter"
-        android:contentDescription="Repair image" />
-
-    <TextView
-        android:id="@+id/tvImageMissing"
+    <!-- White Card -->
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Image file is no longer available."
-        android:textSize="14sp"
-        android:gravity="center"
-        android:padding="20dp"
-        android:visibility="gone" />
+        android:orientation="vertical"
+        android:paddingTop="8dp"
+        android:paddingStart="8dp"
+        android:paddingEnd="8dp"
+        android:paddingBottom="8dp"
+        android:background="@color/white">
 
-    <TextView
-        android:id="@+id/tvImageCategory"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:textSize="16sp"
-        android:textStyle="bold"
-        android:textColor="@android:color/black"
-        android:paddingTop="8dp" />
+        <!-- Repair Image -->
+        <ImageView
+            android:id="@+id/imgRepairImage"
+            android:layout_width="match_parent"
+            android:layout_height="220dp"
+            android:scaleType="fitCenter"
+            android:contentDescription="Repair image" />
 
-    <TextView
-        android:id="@+id/tvImageCaption"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:textSize="14sp"
-        android:textColor="@android:color/black"
-        android:paddingTop="6dp" />
+        <!-- Missing Image Message -->
+        <TextView
+            android:id="@+id/tvImageMissing"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Image file is no longer available."
+            android:textSize="14sp"
+            android:gravity="center"
+            android:padding="20dp"
+            android:textColor="@color/dark_blue"
+            android:visibility="gone" />
 
-    <TextView
-        android:id="@+id/tvImageDate"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:textSize="12sp"
-        android:textColor="@android:color/darker_gray"
-        android:paddingTop="6dp" />
+        <!-- Device Category -->
+        <TextView
+            android:id="@+id/tvImageCategory"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textColor="@color/dark_blue"
+            android:paddingTop="8dp"
+            android:paddingBottom="2dp" />
+
+        <!-- Caption -->
+        <TextView
+            android:id="@+id/tvImageCaption"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="14sp"
+            android:textColor="@color/dark_blue"
+            android:paddingTop="6dp" />
+
+        <!-- Date -->
+        <TextView
+            android:id="@+id/tvImageDate"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="12sp"
+            android:textColor="@color/dark_blue"
+            android:paddingTop="6dp"
+            android:paddingBottom="8dp" />
+
+    </LinearLayout>
 
 </LinearLayout>
