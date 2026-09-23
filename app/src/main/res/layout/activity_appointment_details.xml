@@ -3,7 +3,8 @@
 <ScrollView
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="@color/dark_blue">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -17,63 +18,72 @@
             android:layout_height="wrap_content"
             android:text="Appointment ID"
             android:textSize="18sp"
-            android:textStyle="bold" />
+            android:textStyle="bold"
+            android:textColor="@color/white" />
 
         <TextView
             android:id="@+id/tvCustomerId"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
-            android:text="Customer ID" />
+            android:text="Customer ID"
+            android:textColor="@color/text_secondary" />
 
         <TextView
             android:id="@+id/tvServiceId"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="6dp"
-            android:text="Service ID" />
+            android:text="Service ID"
+            android:textColor="@color/text_secondary" />
 
         <TextView
             android:id="@+id/tvBranchId"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="6dp"
-            android:text="Branch ID" />
+            android:text="Branch ID"
+            android:textColor="@color/text_secondary" />
 
         <TextView
             android:id="@+id/tvDevice"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:text="Device" />
+            android:text="Device"
+            android:textColor="@color/white" />
 
         <TextView
             android:id="@+id/tvCategory"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="6dp"
-            android:text="Device Category" />
+            android:text="Device Category"
+            android:textColor="@color/text_secondary" />
 
         <TextView
             android:id="@+id/tvProblem"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="6dp"
-            android:text="Problem" />
+            android:text="Problem"
+            android:textColor="@color/text_secondary" />
 
         <TextView
             android:id="@+id/tvDate"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="6dp"
-            android:text="Preferred Date" />
+            android:text="Preferred Date"
+            android:textColor="@color/text_secondary" />
 
         <TextView
             android:id="@+id/tvTime"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="6dp"
-            android:text="Time Slot" />
+            android:text="Time Slot"
+            android:textColor="@color/text_secondary" />
 
         <TextView
             android:id="@+id/tvStatus"
@@ -81,14 +91,16 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
             android:text="Status"
-            android:textStyle="bold" />
+            android:textStyle="bold"
+            android:textColor="@color/white" />
 
         <TextView
             android:id="@+id/tvTechnician"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="6dp"
-            android:text="Technician" />
+            android:text="Technician"
+            android:textColor="@color/text_secondary" />
 
         <TextView
             android:layout_width="match_parent"
@@ -96,34 +108,45 @@
             android:layout_marginTop="24dp"
             android:text="Assign Technician"
             android:textSize="17sp"
-            android:textStyle="bold" />
+            android:textStyle="bold"
+            android:textColor="@color/white" />
 
         <Spinner
             android:id="@+id/spinnerTechnician"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp" />
+            android:layout_marginTop="8dp"
+            android:background="@color/white"
+            android:popupBackground="@color/white" />
 
         <Button
             android:id="@+id/btnAssignTechnician"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:text="Assign Technician" />
+            android:text="Assign Technician"
+            android:textColor="@color/dark_blue"
+            android:backgroundTint="@color/white"
+            android:textStyle="bold" />
 
         <Button
             android:id="@+id/btnCreateRepair"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:text="Create Repair" />
+            android:text="Create Repair"
+            android:textColor="@color/dark_blue"
+            android:backgroundTint="@color/white"
+            android:textStyle="bold" />
 
         <Button
             android:id="@+id/btnDeleteAppointment"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:text="Delete Appointment" />
+            android:text="Delete Appointment"
+            android:textColor="@color/white"
+            android:backgroundTint="#FF5252" />
 
         <ProgressBar
             android:id="@+id/progressBar"
