@@ -6,6 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_margin="8dp"
+    app:cardBackgroundColor="@color/white"
     app:cardCornerRadius="10dp"
     app:cardElevation="3dp">
 
@@ -21,35 +22,40 @@
             android:layout_height="wrap_content"
             android:text="Appointment: "
             android:textSize="16sp"
-            android:textStyle="bold" />
+            android:textStyle="bold"
+            android:textColor="@color/dark_blue" />
 
         <TextView
             android:id="@+id/tvCustomerName"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:text="Customer Name: " />
+            android:text="Customer Name: "
+            android:textColor="@color/dark_blue" />
 
         <TextView
             android:id="@+id/tvDevice"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:text="Device: iPhone 14" />
+            android:text="Device: iPhone 14"
+            android:textColor="@color/dark_blue" />
 
         <TextView
             android:id="@+id/tvCategory"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
-            android:text="Category: Mobile" />
+            android:text="Category: Mobile"
+            android:textColor="@color/dark_blue" />
 
         <TextView
             android:id="@+id/tvDateTime"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
-            android:text="Date: 2026-09-10 | Time: 10:00 AM" />
+            android:text="Date: 2026-09-10 | Time: 10:00 AM"
+            android:textColor="@color/dark_blue" />
 
         <TextView
             android:id="@+id/tvStatus"
@@ -57,7 +63,8 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
             android:text="Status: pending"
-            android:textStyle="bold" />
+            android:textStyle="bold"
+            android:textColor="@color/dark_blue" />
 
     </LinearLayout>
 

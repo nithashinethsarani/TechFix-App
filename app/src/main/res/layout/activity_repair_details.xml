@@ -3,7 +3,8 @@
 <ScrollView
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="@color/dark_blue">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -17,50 +18,58 @@
             android:layout_height="wrap_content"
             android:text="Repair ID"
             android:textSize="20sp"
-            android:textStyle="bold" />
+            android:textStyle="bold"
+            android:textColor="@color/white" />
 
         <TextView
             android:id="@+id/tvCustomerId"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
-            android:text="Customer ID" />
+            android:text="Customer ID"
+            android:textColor="@color/text_secondary" />
 
         <TextView
             android:id="@+id/tvAppointment"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Appointment ID" />
+            android:text="Appointment ID"
+            android:textColor="@color/text_secondary" />
 
         <TextView
             android:id="@+id/tvServiceId"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Service ID" />
+            android:text="Service ID"
+            android:textColor="@color/text_secondary" />
 
         <TextView
             android:id="@+id/tvBranchId"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Branch ID" />
+            android:text="Branch ID"
+            android:textColor="@color/text_secondary" />
 
         <TextView
             android:id="@+id/tvTechnicianId"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Technician ID" />
+            android:text="Technician ID"
+            android:textColor="@color/text_secondary" />
 
         <TextView
             android:id="@+id/tvCurrentStatus"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Status" />
+            android:text="Status"
+            android:textColor="@color/text_secondary" />
 
         <TextView
             android:id="@+id/tvCurrentPaymentStatus"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="PaymentStatus" />
+            android:text="PaymentStatus"
+            android:textColor="@color/text_secondary" />
 
         <TextView
             android:id="@+id/tvDevice"
@@ -69,27 +78,31 @@
             android:layout_marginTop="16dp"
             android:text="Device"
             android:textSize="17sp"
-            android:textStyle="bold" />
+            android:textStyle="bold"
+            android:textColor="@color/white" />
 
         <TextView
             android:id="@+id/tvDeviceCategory"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Category" />
+            android:text="Category"
+            android:textColor="@color/text_secondary" />
 
         <TextView
             android:id="@+id/tvProblem"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:text="Problem" />
+            android:text="Problem"
+            android:textColor="@color/text_secondary" />
 
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="20dp"
             android:text="Diagnosis"
-            android:textStyle="bold" />
+            android:textStyle="bold"
+            android:textColor="@color/white" />
 
         <EditText
             android:id="@+id/etDiagnosis"
@@ -98,14 +111,18 @@
             android:hint="Enter diagnosis"
             android:gravity="top"
             android:minLines="3"
-            android:inputType="textMultiLine" />
+            android:inputType="textMultiLine"
+            android:background="@color/white"
+            android:textColor="@color/dark_blue"
+            android:padding="10dp" />
 
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
             android:text="Repair Notes"
-            android:textStyle="bold" />
+            android:textStyle="bold"
+            android:textColor="@color/white" />
 
         <EditText
             android:id="@+id/etRepairNotes"
@@ -114,61 +131,78 @@
             android:hint="Enter repair notes"
             android:gravity="top"
             android:minLines="3"
-            android:inputType="textMultiLine" />
+            android:inputType="textMultiLine"
+            android:background="@color/white"
+            android:textColor="@color/dark_blue"
+            android:padding="10dp" />
 
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
             android:text="Final Price"
-            android:textStyle="bold" />
+            android:textStyle="bold"
+            android:textColor="@color/white" />
 
         <EditText
             android:id="@+id/etFinalPrice"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="Enter final price"
-            android:inputType="numberDecimal" />
+            android:inputType="numberDecimal"
+            android:background="@color/white"
+            android:textColor="@color/dark_blue"
+            android:padding="10dp" />
 
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
             android:text="Change Status"
-            android:textStyle="bold" />
+            android:textStyle="bold"
+            android:textColor="@color/white" />
 
         <Spinner
             android:id="@+id/spinnerStatus"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"
+            android:background="@color/white" />
 
         <Button
             android:id="@+id/btnSave"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="24dp"
-            android:text="Save Repair" />
+            android:text="Save Repair"
+            android:textColor="@color/dark_blue"
+            android:backgroundTint="@color/white"
+            android:textStyle="bold" />
 
         <Button
             android:id="@+id/btnUploadRepairImage"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="24dp"
-            android:text="Upload Image" />
+            android:text="Upload Image"
+            android:textColor="@color/dark_blue"
+            android:backgroundTint="@color/white"
+            android:textStyle="bold" />
 
         <Button
             android:id="@+id/btnViewRepairImages"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="24dp"
-            android:text="View Repair Images" />
+
 
         <Button
             android:id="@+id/btnDelete"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="24dp"
-            android:text="Delete Repair" />
+            android:text="Delete Repair"
+            android:textColor="@color/white"
+            android:backgroundTint="#FF5252" />
 
         <ProgressBar
             android:id="@+id/progressBar"

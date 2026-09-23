@@ -5,7 +5,8 @@
     android:layout_height="wrap_content"
     android:orientation="horizontal"
     android:gravity="center_vertical"
-    android:padding="12dp">
+    android:padding="12dp"
+    android:background="@color/white">
 
     <TextView
         android:id="@+id/tvInventoryItemName"
@@ -13,14 +14,16 @@
         android:layout_height="wrap_content"
         android:layout_weight="1"
         android:text="Item name"
-        android:textSize="16sp" />
+        android:textSize="16sp"
+        android:textColor="@color/dark_blue" />
 
     <TextView
         android:id="@+id/tvInventoryItemPrice"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Rs. 0.00"
         android:textSize="16sp"
-        android:textStyle="bold" />
+        android:text="Rs. 0.00"
+        android:textStyle="bold"
+        android:textColor="@color/dark_blue" />
 
 </LinearLayout>
